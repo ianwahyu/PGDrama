@@ -1,0 +1,27 @@
+---
+const { contentId, contentType } = Astro.props;
+---
+
+<a
+  class="hidden rounded-full bg-sage-300 px-5 py-3 text-sm font-black text-ink-950"
+  href="#"
+  data-continue-pill
+  data-content-id={contentId}
+  data-content-type={contentType}
+>
+  Lanjut menonton
+</a>
+
+<script>
+  import { getLatestHistoryFor } from "../lib/localData";
+
+  document.querySelectorAll("[data-continue-pill]").forEach((link) => {
+    const contentId = link.getAttribute("data-content-id");
+    const contentType = link.getAttribute("data-content-type");
+    const latest = getLatestHistoryFor(contentId || "", contentType || "");
+    if (latest) {
+      link.setAttribute("href", `/${contentType}/${contentId}/watch/${latest.episode_index}`);
+      link.classList.remove("hidden");
+    }
+  });
+</script>

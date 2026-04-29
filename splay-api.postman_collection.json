@@ -1,0 +1,113 @@
+{
+  "info": {
+    "name": "SPlay API",
+    "description": "Complete API collection for SPlay — 7 content APIs (Short Drama, Anime, MovieBox, iQIYI, WeTV, DrakorIndo, Baca). Base URL: https://api.splay.id",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{API_KEY}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "https://api.splay.id" },
+    { "key": "API_KEY", "value": "YOUR_API_KEY" }
+  ],
+  "item": [
+    {
+      "name": "Health & Status",
+      "item": [
+        { "name": "Health Check", "request": { "method": "GET", "url": "{{BASE_URL}}/health" } },
+        { "name": "API Status", "request": { "method": "GET", "url": "{{BASE_URL}}/api/status" } },
+        { "name": "Content Types", "request": { "method": "GET", "url": "{{BASE_URL}}/api/content-types" } },
+        { "name": "RPS Metrics", "request": { "method": "GET", "url": "{{BASE_URL}}/api/metrics/rps?minutes=60" } }
+      ]
+    },
+    {
+      "name": "Short Drama",
+      "item": [
+        { "name": "List Dramas", "request": { "method": "GET", "url": "{{BASE_URL}}/api/dramas?page=1&per_page=20" } },
+        { "name": "Popular Dramas", "request": { "method": "GET", "url": "{{BASE_URL}}/api/dramas/popular?per_page=20" } },
+        { "name": "Trending Dramas", "request": { "method": "GET", "url": "{{BASE_URL}}/api/dramas/trending?per_page=20" } },
+        { "name": "Search Dramas", "request": { "method": "GET", "url": "{{BASE_URL}}/api/search?q=love&per_page=10" } },
+        { "name": "Drama Detail", "request": { "method": "GET", "url": "{{BASE_URL}}/api/dramas/1" } },
+        { "name": "Drama Episodes", "request": { "method": "GET", "url": "{{BASE_URL}}/api/dramas/1/episodes?page=1&per_page=100" } },
+        { "name": "Alphabet Counts", "request": { "method": "GET", "url": "{{BASE_URL}}/api/dramas/alphabet" } },
+        { "name": "Alphabet List", "request": { "method": "GET", "url": "{{BASE_URL}}/api/dramas/alphabet?letter=A&per_page=20" } },
+        { "name": "Providers", "request": { "method": "GET", "url": "{{BASE_URL}}/api/providers" } },
+        { "name": "Tags", "request": { "method": "GET", "url": "{{BASE_URL}}/api/tags" } }
+      ]
+    },
+    {
+      "name": "Anime",
+      "item": [
+        { "name": "List Anime", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime?page=1&per_page=20" } },
+        { "name": "Popular Anime", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime/popular?per_page=20" } },
+        { "name": "Latest Update", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime/latest-update?per_page=20" } },
+        { "name": "Search Anime", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime/search?q=naruto&per_page=10" } },
+        { "name": "Anime Detail", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime/one-piece" } },
+        { "name": "Anime Episodes", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime/one-piece/episodes?page=1&per_page=25" } },
+        { "name": "Single Episode", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime/one-piece/episodes/1" } },
+        { "name": "Genres", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime/genres" } },
+        { "name": "Alphabet", "request": { "method": "GET", "url": "{{BASE_URL}}/api/anime/alphabet" } }
+      ]
+    },
+    {
+      "name": "MovieBox",
+      "item": [
+        { "name": "List Movies", "request": { "method": "GET", "url": "{{BASE_URL}}/api/moviebox?type=movies&page=1&per_page=20" } },
+        { "name": "List Series", "request": { "method": "GET", "url": "{{BASE_URL}}/api/moviebox?type=series&page=1&per_page=20" } },
+        { "name": "Popular", "request": { "method": "GET", "url": "{{BASE_URL}}/api/moviebox/popular?type=movies&per_page=20" } },
+        { "name": "Trending", "request": { "method": "GET", "url": "{{BASE_URL}}/api/moviebox/trending?per_page=20" } },
+        { "name": "Search", "request": { "method": "GET", "url": "{{BASE_URL}}/api/moviebox/search?q=batman&per_page=10" } },
+        { "name": "Detail", "request": { "method": "GET", "url": "{{BASE_URL}}/api/moviebox/1" } },
+        { "name": "Episodes", "request": { "method": "GET", "url": "{{BASE_URL}}/api/moviebox/1/episodes?page=1&per_page=100" } }
+      ]
+    },
+    {
+      "name": "iQIYI",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{BASE_URL}}/api/iqiyi?page=1&per_page=20" } },
+        { "name": "Popular", "request": { "method": "GET", "url": "{{BASE_URL}}/api/iqiyi/popular?per_page=20" } },
+        { "name": "Trending", "request": { "method": "GET", "url": "{{BASE_URL}}/api/iqiyi/trending?per_page=20" } },
+        { "name": "Search", "request": { "method": "GET", "url": "{{BASE_URL}}/api/iqiyi/search?q=love&per_page=10" } },
+        { "name": "Detail", "request": { "method": "GET", "url": "{{BASE_URL}}/api/iqiyi/1" } },
+        { "name": "Episodes", "request": { "method": "GET", "url": "{{BASE_URL}}/api/iqiyi/1/episodes?page=1&per_page=100" } }
+      ]
+    },
+    {
+      "name": "WeTV",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{BASE_URL}}/api/wetv?page=1&per_page=20" } },
+        { "name": "Popular", "request": { "method": "GET", "url": "{{BASE_URL}}/api/wetv/popular?per_page=20" } },
+        { "name": "Trending", "request": { "method": "GET", "url": "{{BASE_URL}}/api/wetv/trending?per_page=20" } },
+        { "name": "Search", "request": { "method": "GET", "url": "{{BASE_URL}}/api/wetv/search?q=drama&per_page=10" } },
+        { "name": "Detail", "request": { "method": "GET", "url": "{{BASE_URL}}/api/wetv/1" } },
+        { "name": "Episodes", "request": { "method": "GET", "url": "{{BASE_URL}}/api/wetv/1/episodes?page=1&per_page=100" } }
+      ]
+    },
+    {
+      "name": "DrakorIndo",
+      "item": [
+        { "name": "List Series", "request": { "method": "GET", "url": "{{BASE_URL}}/api/drakor?type=series&page=1&per_page=20" } },
+        { "name": "List Movies", "request": { "method": "GET", "url": "{{BASE_URL}}/api/drakor?type=movie&page=1&per_page=20" } },
+        { "name": "Popular", "request": { "method": "GET", "url": "{{BASE_URL}}/api/drakor/popular?type=series&per_page=20" } },
+        { "name": "Trending", "request": { "method": "GET", "url": "{{BASE_URL}}/api/drakor/trending?per_page=20" } },
+        { "name": "Search", "request": { "method": "GET", "url": "{{BASE_URL}}/api/drakor/search?q=love&per_page=10" } },
+        { "name": "Detail", "request": { "method": "GET", "url": "{{BASE_URL}}/api/drakor/1" } },
+        { "name": "Episodes", "request": { "method": "GET", "url": "{{BASE_URL}}/api/drakor/1/episodes?page=1&per_page=100" } }
+      ]
+    },
+    {
+      "name": "Baca (Manga)",
+      "item": [
+        { "name": "List Manhwa", "request": { "method": "GET", "url": "{{BASE_URL}}/api/baca/manhwa?page=1&per_page=20" } },
+        { "name": "List Manga", "request": { "method": "GET", "url": "{{BASE_URL}}/api/baca/manga?page=1&per_page=20" } },
+        { "name": "List Manhua", "request": { "method": "GET", "url": "{{BASE_URL}}/api/baca/manhua?page=1&per_page=20" } },
+        { "name": "Popular Manhwa", "request": { "method": "GET", "url": "{{BASE_URL}}/api/baca/manhwa/popular?per_page=20" } },
+        { "name": "Search Manhwa", "request": { "method": "GET", "url": "{{BASE_URL}}/api/baca/manhwa/search?q=solo&per_page=10" } },
+        { "name": "Detail", "request": { "method": "GET", "url": "{{BASE_URL}}/api/baca/manhwa/1" } },
+        { "name": "Chapters", "request": { "method": "GET", "url": "{{BASE_URL}}/api/baca/manhwa/1/chapters?page=1&per_page=100" } }
+      ]
+    }
+  ]
+}

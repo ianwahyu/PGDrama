@@ -1,0 +1,35 @@
+---
+import AppShell from "@components/AppShell.astro";
+import { isBacaCategory } from "@lib/content";
+import { getBacaChapters, getBacaDetail } from "@lib/splay";
+
+const category = Astro.params.category ?? "";
+const id = Astro.params.id ?? "";
+const chapter = Astro.params.chapter ?? "";
+
+if (!isBacaCategory(category)) {
+  return Astro.redirect("/");
+}
+
+const [detail, chapters] = await Promise.all([getBacaDetail(category, id), getBacaChapters(category, id).catch(() => [])]);
+const item = detail.item;
+const current = chapters.find((entry) => String(entry.index) === chapter || entry.id === chapter);
+const images = Object.values((current?.raw?.images ?? current?.raw?.pages ?? current?.raw?.qualities ?? {}) as Record<string, string>);
+---
+
+<AppShell title={`${item.title} Chapter ${chapter} - PGDrama`} compact>
+  <a class="mb-5 inline-flex rounded-full bg-cream-50/8 px-4 py-2 text-sm font-bold text-cream-100/70" href={`/baca/${category}/${id}`}>← Kembali ke detail</a>
+  <header class="mb-5">
+    <p class="text-sm font-bold text-peach-300">Chapter {chapter}</p>
+    <h1 class="text-3xl font-black">{item.title}</h1>
+  </header>
+  <div class="space-y-3">
+    {
+      images.length ? (
+        images.map((src) => <img class="mx-auto w-full rounded-xl bg-ink-800" src={src} alt={`${item.title} chapter ${chapter}`} loading="lazy" />)
+      ) : (
+        <div class="soft-panel rounded-[1.5rem] p-8 text-center text-cream-100/65">Halaman chapter belum tersedia.</div>
+      )
+    }
+  </div>
+</AppShell>

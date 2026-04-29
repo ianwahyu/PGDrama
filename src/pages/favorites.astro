@@ -1,0 +1,49 @@
+---
+import AppShell from "@components/AppShell.astro";
+import Header from "@components/Header.astro";
+---
+
+<AppShell title="Favorit - PGDrama">
+  <Header eyebrow="Local" title="Favorit kamu" subtitle="Disimpan di browser perangkat ini, tanpa login dan tanpa server database." />
+  <div id="favorites-root" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6"></div>
+  <template id="empty-template">
+    <div class="soft-panel col-span-full rounded-[1.5rem] p-8 text-center">
+      <p class="text-xl font-black">Belum ada favorit</p>
+      <p class="mt-2 text-sm text-cream-100/65">Simpan dari halaman detail atau kartu konten.</p>
+    </div>
+  </template>
+</AppShell>
+
+<script>
+  import { getFavorites, removeFavorite } from "../lib/localData";
+
+  const root = document.querySelector("#favorites-root");
+  const empty = document.querySelector<HTMLTemplateElement>("#empty-template");
+  const render = () => {
+    if (!root || !empty) return;
+    const favorites = getFavorites();
+    root.innerHTML = "";
+    if (!favorites.length) {
+      root.append(empty.content.cloneNode(true));
+      return;
+    }
+    for (const item of favorites) {
+      const href = item.type.startsWith("baca-") ? `/baca/${item.type.replace("baca-", "")}/${item.id}` : `/${item.type}/${item.id}`;
+      const card = document.createElement("article");
+      card.className = "overflow-hidden rounded-[1.4rem] border border-cream-50/10 bg-cream-50/6";
+      card.innerHTML = `
+        <a href="${href}">
+          <div class="aspect-[2/3] bg-ink-800"><img class="h-full w-full object-cover" src="${item.cover_url || ""}" alt="${item.title}" loading="lazy"></div>
+          <div class="p-3"><h3 class="line-clamp-2 text-sm font-black">${item.title}</h3><p class="mt-1 text-xs text-cream-100/55">${item.provider || item.type}</p></div>
+        </a>
+        <button class="m-3 rounded-full bg-cream-50/10 px-3 py-2 text-xs font-black" type="button">Hapus</button>
+      `;
+      card.querySelector("button")?.addEventListener("click", () => {
+        removeFavorite(item.id, item.type);
+        render();
+      });
+      root.append(card);
+    }
+  };
+  render();
+</script>

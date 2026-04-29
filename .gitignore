@@ -1,0 +1,12 @@
+.astro/
+.cache/
+.npm-cache/
+.env
+.env.*
+!.env.example
+dist/
+node_modules/
+*.db
+*.db-shm
+*.db-wal
+npm-debug.log*

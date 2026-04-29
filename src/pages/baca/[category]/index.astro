@@ -1,0 +1,38 @@
+---
+import AppShell from "@components/AppShell.astro";
+import EmptyState from "@components/EmptyState.astro";
+import ErrorState from "@components/ErrorState.astro";
+import Header from "@components/Header.astro";
+import Pagination from "@components/Pagination.astro";
+import PosterCard from "@components/PosterCard.astro";
+import { isBacaCategory, itemHref, labelFor } from "@lib/content";
+import { listBaca, toQuery } from "@lib/splay";
+
+const category = Astro.params.category ?? "";
+if (!isBacaCategory(category)) {
+  return Astro.redirect("/");
+}
+
+const params = toQuery({
+  page: Astro.url.searchParams.get("page") ?? 1,
+  per_page: Astro.url.searchParams.get("per_page") ?? 24
+});
+const result = await listBaca(category, params);
+---
+
+<AppShell title={`${labelFor(category)} - PGDrama`}>
+  <Header eyebrow="Baca" title={labelFor(category)} subtitle="Reader ringan untuk manga, manhwa, dan manhua." />
+  <ErrorState error={result.error} />
+  {
+    result.items.length ? (
+      <>
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {result.items.map((item) => <PosterCard item={item} href={itemHref(item)} />)}
+        </div>
+        <Pagination page={result.meta.page} totalPages={result.meta.total_pages} baseUrl={Astro.url} />
+      </>
+    ) : (
+      <EmptyState />
+    )
+  }
+</AppShell>

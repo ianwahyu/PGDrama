@@ -1,0 +1,228 @@
+openapi: 3.0.3
+info:
+  title: SPlay API
+  version: 1.0.0
+  description: |
+    Streaming and reading content APIs — Short Drama, Anime, MovieBox, iQIYI, WeTV, DrakorIndo, Baca (Manga).
+    Self-hosted infrastructure with signed CDN URLs and per-plan rate limiting.
+  contact:
+    email: support@splay.id
+    url: https://hub.splay.id
+servers:
+  - url: https://api.splay.id
+    description: Production
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: API key from hub.splay.id/api-dashboard
+  schemas:
+    Drama:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        cover_url: { type: string, nullable: true }
+        provider_id: { type: integer }
+        provider_name: { type: string }
+        provider_slug: { type: string }
+        chapter_count: { type: integer, nullable: true }
+        play_count: { type: integer }
+        introduction: { type: string, nullable: true }
+        language: { type: string, nullable: true }
+        is_dubbed: { type: boolean }
+    Episode:
+      type: object
+      properties:
+        id: { type: integer }
+        drama_id: { type: integer }
+        episode_index: { type: integer }
+        episode_name: { type: string, nullable: true }
+        video_url: { type: string, nullable: true, description: "Signed URL (TTL 30min-4h)" }
+        subtitle_url: { type: string, nullable: true }
+        qualities: { type: object, nullable: true, description: "Map of quality→signed URL" }
+    PaginationMeta:
+      type: object
+      properties:
+        page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        total_pages: { type: integer }
+    AnimeItem:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        cover_url: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        genres: { type: array, items: { type: string } }
+        available_episodes: { type: integer }
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        '200': { description: OK }
+
+  /api/status:
+    get:
+      summary: System status with provider stats
+      security: []
+      responses:
+        '200': { description: Provider counts and totals }
+
+  /api/content-types:
+    get:
+      summary: Enabled content types
+      security: []
+      responses:
+        '200': { description: List of enabled content type slugs }
+
+  /api/dramas:
+    get:
+      summary: List dramas
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, default: 20 } }
+        - { name: provider, in: query, schema: { type: string } }
+        - { name: tag, in: query, schema: { type: string } }
+        - { name: language, in: query, schema: { type: string } }
+        - { name: sort_by, in: query, schema: { type: string, enum: [updated_at, play_count, title, chapter_count, created_at] } }
+        - { name: sort_order, in: query, schema: { type: string, enum: [asc, desc] } }
+      responses:
+        '200': { description: Paginated drama list }
+
+  /api/dramas/popular:
+    get:
+      summary: Popular dramas
+      parameters:
+        - { name: per_page, in: query, schema: { type: integer } }
+        - { name: language, in: query, schema: { type: string } }
+      responses:
+        '200': { description: Paginated popular dramas }
+
+  /api/dramas/trending:
+    get:
+      summary: Trending dramas
+      responses:
+        '200': { description: Paginated trending dramas }
+
+  /api/dramas/{id}:
+    get:
+      summary: Drama detail
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Drama with tags }
+
+  /api/dramas/{id}/episodes:
+    get:
+      summary: Drama episodes (signed video URLs)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: per_page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Paginated episodes with signed URLs }
+
+  /api/search:
+    get:
+      summary: Full-text search (MeiliSearch)
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+        - { name: per_page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Search results }
+
+  /api/anime:
+    get:
+      summary: List anime
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: per_page, in: query, schema: { type: integer } }
+        - { name: genre, in: query, schema: { type: string } }
+        - { name: origin, in: query, schema: { type: string, enum: [JP, CN, KR] } }
+      responses:
+        '200': { description: Paginated anime list }
+
+  /api/anime/popular:
+    get:
+      summary: Popular anime
+      responses:
+        '200': { description: Popular anime }
+
+  /api/anime/latest-update:
+    get:
+      summary: Recently updated anime
+      responses:
+        '200': { description: Latest updated anime sorted by updatedAt }
+
+  /api/anime/{id}:
+    get:
+      summary: Anime detail
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Anime detail with AniList metadata }
+
+  /api/anime/{id}/episodes:
+    get:
+      summary: Anime episode list
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Episode list }
+
+  /api/anime/{id}/episodes/{num}:
+    get:
+      summary: Single anime episode (HLS signed URLs)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: num, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Episode with signed video URLs and subtitles }
+
+  /api/moviebox:
+    get:
+      summary: List MovieBox content
+      parameters:
+        - { name: type, in: query, schema: { type: string, enum: [movies, series] } }
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: per_page, in: query, schema: { type: integer } }
+      responses:
+        '200': { description: Paginated MovieBox list }
+
+  /api/iqiyi:
+    get:
+      summary: List iQIYI content
+      responses:
+        '200': { description: Paginated iQIYI list }
+
+  /api/wetv:
+    get:
+      summary: List WeTV content
+      responses:
+        '200': { description: Paginated WeTV list }
+
+  /api/drakor:
+    get:
+      summary: List DrakorIndo content
+      parameters:
+        - { name: type, in: query, schema: { type: string, enum: [series, movie] } }
+      responses:
+        '200': { description: Paginated DrakorIndo list }
+
+  /api/baca/{category}:
+    get:
+      summary: List Baca content by category
+      parameters:
+        - { name: category, in: path, required: true, schema: { type: string, enum: [manga, manhwa, manhua] } }
+      responses:
+        '200': { description: Paginated Baca list }

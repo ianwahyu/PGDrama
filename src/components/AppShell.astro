@@ -1,0 +1,28 @@
+---
+import "../styles/global.css";
+import BottomNav from "./BottomNav.astro";
+
+const {
+  title = "PGDrama",
+  description = "Katalog streaming ringan untuk SPlay.",
+  compact = false
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#141716" />
+    <link rel="preconnect" href="https://api.splay.id" />
+    <title>{title}</title>
+  </head>
+  <body class="tap-highlight text-cream-50">
+    <div class:list={["mx-auto min-h-dvh w-full max-w-6xl px-4 pb-28 pt-5 sm:px-6 lg:px-8", compact && "max-w-4xl"]}>
+      <slot />
+    </div>
+    <BottomNav />
+  </body>
+</html>

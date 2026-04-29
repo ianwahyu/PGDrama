@@ -1,0 +1,20 @@
+---
+import PosterCard from "./PosterCard.astro";
+import type { NormalizedItem } from "@lib/types";
+
+const { title, items = [], basePath = "/dramas" } = Astro.props as {
+  title: string;
+  items: NormalizedItem[];
+  basePath?: string;
+};
+---
+
+<section class="my-8">
+  <div class="mb-4 flex items-end justify-between gap-3">
+    <h2 class="text-2xl font-black tracking-tight">{title}</h2>
+    <a class="text-sm font-bold text-peach-300" href={basePath}>Lihat semua</a>
+  </div>
+  <div class="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3">
+    {items.map((item) => <div class="w-36 shrink-0 snap-start sm:w-44"><PosterCard item={item} href={`${basePath}/${item.id}`} /></div>)}
+  </div>
+</section>

@@ -1,0 +1,47 @@
+---
+import AppShell from "@components/AppShell.astro";
+import Header from "@components/Header.astro";
+---
+
+<AppShell title="History - PGDrama">
+  <Header eyebrow="Local" title="Riwayat tontonan" subtitle="Progress tersimpan lokal di browser dan bisa dilanjutkan dari perangkat ini." />
+  <button id="clear-history" class="mb-5 rounded-full bg-peach-300 px-5 py-3 text-sm font-black text-ink-950" type="button">Bersihkan history</button>
+  <div id="history-root" class="space-y-3"></div>
+</AppShell>
+
+<script>
+  import { clearHistory, getHistory } from "../lib/localData";
+
+  const root = document.querySelector("#history-root");
+  const clear = document.querySelector("#clear-history");
+  const render = () => {
+    if (!root) return;
+    const history = getHistory();
+    root.innerHTML = "";
+    if (!history.length) {
+      root.innerHTML = `<div class="soft-panel rounded-[1.5rem] p-8 text-center"><p class="text-xl font-black">Belum ada riwayat</p><p class="mt-2 text-sm text-cream-100/65">Mulai tonton episode untuk menyimpan progress.</p></div>`;
+      return;
+    }
+    for (const item of history) {
+      const href = `/${item.type}/${item.id}/watch/${item.episode_index}`;
+      const percent = item.duration_seconds ? Math.min(100, Math.round((item.progress_seconds / item.duration_seconds) * 100)) : 0;
+      const row = document.createElement("a");
+      row.className = "soft-panel flex gap-4 rounded-[1.4rem] p-3 hover:bg-cream-50/12";
+      row.href = href;
+      row.innerHTML = `
+        <img class="h-24 w-16 rounded-xl object-cover bg-ink-800" src="${item.cover_url || ""}" alt="${item.title}" loading="lazy">
+        <div class="min-w-0 flex-1">
+          <p class="font-black line-clamp-1">${item.title}</p>
+          <p class="mt-1 text-sm text-cream-100/60">Episode ${item.episode_index} • ${percent}%</p>
+          <div class="mt-4 h-2 overflow-hidden rounded-full bg-cream-50/10"><span class="block h-full rounded-full bg-sage-300" style="width:${percent}%"></span></div>
+        </div>
+      `;
+      root.append(row);
+    }
+  };
+  clear?.addEventListener("click", () => {
+    clearHistory();
+    render();
+  });
+  render();
+</script>

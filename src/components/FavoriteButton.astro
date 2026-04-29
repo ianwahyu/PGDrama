@@ -1,0 +1,28 @@
+---
+const { item } = Astro.props;
+---
+
+<button
+  class="rounded-full bg-peach-300 px-5 py-3 text-sm font-black text-ink-950 transition hover:bg-peach-500"
+  type="button"
+  data-favorite-button
+  data-item={JSON.stringify(item)}
+>
+  Simpan Favorit
+</button>
+
+<script>
+  import { isFavorite, toggleFavorite } from "../lib/localData";
+
+  document.querySelectorAll("[data-favorite-button]").forEach((button) => {
+    const item = JSON.parse(button.getAttribute("data-item") || "{}");
+    const sync = () => {
+      button.textContent = isFavorite(item.id, item.type) ? "Favorit Tersimpan" : "Simpan Favorit";
+    };
+    sync();
+    button.addEventListener("click", () => {
+      toggleFavorite(item);
+      sync();
+    });
+  });
+</script>

@@ -1,0 +1,50 @@
+---
+import AppShell from "@components/AppShell.astro";
+import ContentRail from "@components/ContentRail.astro";
+import Header from "@components/Header.astro";
+import SearchBar from "@components/SearchBar.astro";
+import { BACA_CATEGORIES, CONTENT_TYPES } from "@lib/content";
+import { getPopularDramas, getTrendingDramas } from "@lib/splay";
+import type { NormalizedList } from "@lib/types";
+
+let popular: Pick<NormalizedList, "items"> = { items: [] };
+let trending: Pick<NormalizedList, "items"> = { items: [] };
+
+try {
+  [popular, trending] = await Promise.all([getPopularDramas(), getTrendingDramas()]);
+} catch {
+  popular = { items: [] };
+  trending = { items: [] };
+}
+---
+
+<AppShell title="PGDrama - SPlay ringan">
+  <Header
+    title="Nonton ringan, katalog cepat, nyaman di mobile."
+    subtitle="Jelajahi drama pendek, anime, movie, drakor, dan manga dari SPlay dalam tampilan soft-modern yang hemat resource."
+  />
+
+  <SearchBar />
+
+  <section class="my-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      CONTENT_TYPES.map((content) => (
+        <a class="soft-panel group rounded-[1.4rem] p-5 transition hover:-translate-y-1 hover:bg-cream-50/12" href={content.href}>
+          <span class:list={["mb-5 block size-3 rounded-full", content.accent]} />
+          <p class="text-lg font-black">{content.label}</p>
+          <p class="mt-2 text-sm text-cream-100/58">Buka katalog</p>
+        </a>
+      ))
+    }
+  </section>
+
+  <section class="my-8">
+    <h2 class="mb-4 text-2xl font-black">Baca</h2>
+    <div class="grid gap-3 sm:grid-cols-3">
+      {BACA_CATEGORIES.map((item) => <a class="rounded-[1.2rem] bg-cream-50/8 p-4 font-black hover:bg-cream-50/12" href={item.href}>{item.label}</a>)}
+    </div>
+  </section>
+
+  <ContentRail title="Drama populer" items={popular.items} basePath="/dramas" />
+  <ContentRail title="Lagi trending" items={trending.items} basePath="/dramas" />
+</AppShell>

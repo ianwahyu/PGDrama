@@ -1,0 +1,21 @@
+---
+const { page = 1, totalPages = 1, baseUrl } = Astro.props;
+const current = Number(page);
+const total = Number(totalPages);
+const previous = current > 1 ? new URL(baseUrl) : null;
+const next = current < total ? new URL(baseUrl) : null;
+previous?.searchParams.set("page", String(current - 1));
+next?.searchParams.set("page", String(current + 1));
+const previousHref = previous ? `${previous.pathname}${previous.search}` : "#";
+const nextHref = next ? `${next.pathname}${next.search}` : "#";
+---
+
+<div class="mt-8 flex items-center justify-between gap-3">
+  <a class:list={["rounded-full px-5 py-3 text-sm font-black", previous ? "bg-cream-50/10 text-cream-50" : "pointer-events-none bg-cream-50/5 text-cream-50/30"]} href={previousHref}>
+    Sebelumnya
+  </a>
+  <span class="text-sm font-bold text-cream-100/60">Page {current} / {Math.max(total, 1)}</span>
+  <a class:list={["rounded-full px-5 py-3 text-sm font-black", next ? "bg-peach-300 text-ink-950" : "pointer-events-none bg-cream-50/5 text-cream-50/30"]} href={nextHref}>
+    Berikutnya
+  </a>
+</div>

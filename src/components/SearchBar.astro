@@ -1,0 +1,16 @@
+---
+const { q = "", action = "/search", placeholder = "Cari drama, anime, movie..." } = Astro.props;
+---
+
+<form action={action} class="soft-panel flex items-center gap-2 rounded-[1.5rem] p-2">
+  <input
+    class="min-h-12 flex-1 rounded-[1.1rem] border-0 bg-transparent px-4 text-base font-semibold text-cream-50 outline-none placeholder:text-cream-100/40"
+    type="search"
+    name="q"
+    value={q}
+    placeholder={placeholder}
+  />
+  <button class="min-h-12 rounded-[1.1rem] bg-peach-300 px-5 text-sm font-black text-ink-950 transition hover:bg-peach-500" type="submit">
+    Cari
+  </button>
+</form>
