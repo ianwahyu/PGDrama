@@ -86,12 +86,17 @@ const subtitleTracks = subtitles.length > 0 ? subtitles : subtitleSrc ? [{ label
         </label>
       )}
     </div>
-    <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5" data-player-actions>
+    <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-6" data-player-actions>
       <button class="brutal-button-secondary min-h-10 px-2 text-xs" type="button" data-player-action="seek-back">-10s</button>
       <button class="brutal-button-secondary min-h-10 px-2 text-xs" type="button" data-player-action="seek-forward">+10s</button>
       <button class="brutal-button-secondary min-h-10 px-2 text-xs" type="button" data-player-action="subtitle">Subtitle</button>
+      <button class="brutal-button-secondary min-h-10 px-2 text-xs disabled:pointer-events-none disabled:opacity-40" type="button" data-player-action="autonext" disabled={!nextEpisode}>Auto Next</button>
       <button class="brutal-button-secondary min-h-10 px-2 text-xs disabled:pointer-events-none disabled:opacity-40" type="button" data-player-action="previous" disabled={!previousEpisode}>Prev Ep</button>
       <button class="brutal-button min-h-10 px-2 text-xs disabled:pointer-events-none disabled:opacity-40" type="button" data-player-action="next" disabled={!nextEpisode}>Next Ep</button>
+    </div>
+    <div class="mt-3 hidden border-2 border-content-50 bg-yellow-500 p-3 text-sm font-black text-base-950" data-autonext-countdown>
+      Episode selesai. Lanjut otomatis dalam <span data-autonext-seconds>5</span> detik.
+      <button class="ml-2 border-2 border-content-50 bg-base-900 px-2 py-1 text-xs font-black text-content-50" type="button" data-player-action="cancel-autonext">Batal</button>
     </div>
     <p class="mt-3 text-xs font-bold text-content-100">Shortcut fullscreen: J/L atau panah kiri/kanan untuk 10 detik, S subtitle, N next, P previous.</p>
   </div>

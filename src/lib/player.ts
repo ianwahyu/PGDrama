@@ -18,6 +18,7 @@ if (video) {
   const subtitleApi = setupSubtitles(video);
   setupPlaybackShortcuts(video, subtitleApi);
   setupMediaSession(video);
+  setupAutoNext(video);
 
   const latest = getLatestHistoryFor(String(content.id), String(content.type));
   if (latest?.episode_id === String(content.episode_id) && latest.progress_seconds > 15) {
@@ -183,6 +184,71 @@ function setupMediaSession(video: HTMLVideoElement) {
   navigator.mediaSession.setActionHandler("seekforward", () => seek(10));
   navigator.mediaSession.setActionHandler("previoustrack", previousUrl ? () => (window.location.href = previousUrl) : null);
   navigator.mediaSession.setActionHandler("nexttrack", nextUrl ? () => (window.location.href = nextUrl) : null);
+}
+
+function setupAutoNext(video: HTMLVideoElement) {
+  const nextUrl = video.dataset.nextUrl || "";
+  const toggle = document.querySelector<HTMLButtonElement>('[data-player-action="autonext"]');
+  const cancel = document.querySelector<HTMLButtonElement>('[data-player-action="cancel-autonext"]');
+  const countdown = document.querySelector<HTMLElement>("[data-autonext-countdown]");
+  const secondsLabel = document.querySelector<HTMLElement>("[data-autonext-seconds]");
+  const storageKey = "pgdrama:autoNext";
+  let enabled = localStorage.getItem(storageKey) !== "off";
+  let timer: number | undefined;
+  let secondsLeft = 5;
+
+  const syncToggle = () => {
+    if (!toggle) return;
+    toggle.textContent = enabled ? "Auto Next On" : "Auto Next Off";
+    toggle.classList.toggle("is-primary", enabled);
+  };
+
+  const clearCountdown = () => {
+    if (timer) window.clearInterval(timer);
+    timer = undefined;
+    countdown?.classList.add("hidden");
+  };
+
+  const goNext = () => {
+    if (nextUrl) window.location.href = nextUrl;
+  };
+
+  const startCountdown = () => {
+    if (!nextUrl || !enabled) return;
+    secondsLeft = 5;
+    if (secondsLabel) secondsLabel.textContent = String(secondsLeft);
+    countdown?.classList.remove("hidden");
+
+    timer = window.setInterval(() => {
+      secondsLeft -= 1;
+      if (secondsLabel) secondsLabel.textContent = String(Math.max(secondsLeft, 0));
+      if (secondsLeft <= 0) {
+        clearCountdown();
+        goNext();
+      }
+    }, 1000);
+  };
+
+  if (!nextUrl) {
+    toggle?.setAttribute("disabled", "true");
+    return;
+  }
+
+  syncToggle();
+  toggle?.addEventListener("click", () => {
+    enabled = !enabled;
+    localStorage.setItem(storageKey, enabled ? "on" : "off");
+    if (!enabled) clearCountdown();
+    syncToggle();
+  });
+  cancel?.addEventListener("click", () => {
+    enabled = false;
+    localStorage.setItem(storageKey, "off");
+    clearCountdown();
+    syncToggle();
+  });
+  video.addEventListener("play", clearCountdown);
+  video.addEventListener("ended", startCountdown);
 }
 
 function toVtt(subtitle: string) {
