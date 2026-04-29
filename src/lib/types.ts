@@ -39,6 +39,13 @@ export type EpisodeItem = {
   title: string;
   video_url?: string | null;
   subtitle_url?: string | null;
+  subtitles?: SubtitleTrack[];
   qualities?: Record<string, string> | null;
   raw: Record<string, unknown>;
+};
+
+export type SubtitleTrack = {
+  label: string;
+  url: string;
+  language?: string;
 };

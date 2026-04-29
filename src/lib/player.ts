@@ -15,7 +15,9 @@ if (video) {
     });
   }
 
-  setupSubtitle(video);
+  const subtitleApi = setupSubtitles(video);
+  setupPlaybackShortcuts(video, subtitleApi);
+  setupMediaSession(video);
 
   const latest = getLatestHistoryFor(String(content.id), String(content.type));
   if (latest?.episode_id === String(content.episode_id) && latest.progress_seconds > 15) {
@@ -53,40 +55,134 @@ function safeJson(value: string | undefined) {
   }
 }
 
-function setupSubtitle(video: HTMLVideoElement) {
-  const track = video.querySelector<HTMLTrackElement>("track");
-  const subtitleUrl = track?.getAttribute("src")?.trim();
+function setupSubtitles(video: HTMLVideoElement) {
+  const tracks = Array.from(video.querySelectorAll<HTMLTrackElement>("track"));
+  const control = document.querySelector<HTMLSelectElement>("[data-subtitle-control]");
+  const validTracks = tracks.filter((track) => {
+    const subtitleUrl = track.getAttribute("src")?.trim();
+    const isValid = subtitleUrl && !["null", "undefined", "none", "-"].includes(subtitleUrl.toLowerCase());
+    if (!isValid) track.remove();
+    return isValid;
+  });
 
-  if (!track || !subtitleUrl || ["null", "undefined", "none", "-"].includes(subtitleUrl.toLowerCase())) {
-    track?.remove();
-    return;
+  if (!validTracks.length) {
+    control?.closest("label")?.remove();
+    document.querySelector<HTMLButtonElement>('[data-player-action="subtitle"]')?.setAttribute("disabled", "true");
+    return {
+      toggle: () => undefined,
+      setActive: () => undefined
+    };
   }
 
-  const activateFirstTrack = () => {
-    if (video.textTracks.length > 0) {
-      video.textTracks[0].mode = "showing";
+  const setActiveTrack = (value = control?.value || "0") => {
+    Array.from(video.textTracks).forEach((track) => {
+      track.mode = "disabled";
+    });
+
+    if (value === "off") return;
+
+    const selected = Number(value);
+    if (Number.isInteger(selected) && video.textTracks[selected]) {
+      video.textTracks[selected].mode = "showing";
     }
   };
 
-  if (subtitleUrl.endsWith(".vtt")) {
-    video.addEventListener("loadedmetadata", activateFirstTrack, { once: true });
-    return;
-  }
+  validTracks.forEach((track, index) => {
+    const subtitleUrl = track.getAttribute("src")?.trim() || "";
+    if (subtitleUrl.endsWith(".vtt")) return;
 
-  fetch(subtitleUrl)
-    .then((response) => {
-      if (!response.ok) throw new Error("Subtitle unavailable");
-      return response.text();
-    })
-    .then((subtitle) => {
-      const objectUrl = URL.createObjectURL(new Blob([toVtt(subtitle)], { type: "text/vtt" }));
-      track.setAttribute("src", objectUrl);
-      track.track.mode = "showing";
-      window.addEventListener("pagehide", () => URL.revokeObjectURL(objectUrl), { once: true });
-    })
-    .catch(() => {
-      track.remove();
-    });
+    fetch(subtitleUrl)
+      .then((response) => {
+        if (!response.ok) throw new Error("Subtitle unavailable");
+        return response.text();
+      })
+      .then((subtitle) => {
+        const objectUrl = URL.createObjectURL(new Blob([toVtt(subtitle)], { type: "text/vtt" }));
+        track.setAttribute("src", objectUrl);
+        window.addEventListener("pagehide", () => URL.revokeObjectURL(objectUrl), { once: true });
+        if (control?.value === String(index)) setActiveTrack(control.value);
+      })
+      .catch(() => {
+        const option = control?.querySelector<HTMLOptionElement>(`option[value="${index}"]`);
+        if (option) {
+          option.disabled = true;
+          option.textContent = `${option.textContent || "Subtitle"} tidak tersedia`;
+        }
+        if (control?.value === String(index)) {
+          control.value = "off";
+          setActiveTrack("off");
+        }
+      });
+  });
+
+  video.addEventListener("loadedmetadata", () => setActiveTrack(control?.value || "0"), { once: true });
+  control?.addEventListener("change", () => setActiveTrack(control.value));
+
+  return {
+    toggle: () => {
+      if (!control) return;
+      control.value = control.value === "off" ? "0" : "off";
+      setActiveTrack(control.value);
+    },
+    setActive: setActiveTrack
+  };
+}
+
+function setupPlaybackShortcuts(video: HTMLVideoElement, subtitleApi: { toggle: () => void }) {
+  const previousUrl = video.dataset.previousUrl || "";
+  const nextUrl = video.dataset.nextUrl || "";
+  const goTo = (url: string) => {
+    if (url) window.location.href = url;
+  };
+  const seek = (seconds: number) => {
+    if (!Number.isFinite(video.duration)) return;
+    video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+  };
+
+  document.querySelector('[data-player-action="seek-back"]')?.addEventListener("click", () => seek(-10));
+  document.querySelector('[data-player-action="seek-forward"]')?.addEventListener("click", () => seek(10));
+  document.querySelector('[data-player-action="subtitle"]')?.addEventListener("click", () => subtitleApi.toggle());
+  document.querySelector('[data-player-action="previous"]')?.addEventListener("click", () => goTo(previousUrl));
+  document.querySelector('[data-player-action="next"]')?.addEventListener("click", () => goTo(nextUrl));
+
+  document.addEventListener("keydown", (event) => {
+    const target = event.target as HTMLElement | null;
+    if (target?.matches("input, select, textarea, button")) return;
+
+    const key = event.key.toLowerCase();
+    if (key === "arrowleft" || key === "j") {
+      event.preventDefault();
+      seek(-10);
+    } else if (key === "arrowright" || key === "l") {
+      event.preventDefault();
+      seek(10);
+    } else if (key === "s") {
+      event.preventDefault();
+      subtitleApi.toggle();
+    } else if (key === "n") {
+      event.preventDefault();
+      goTo(nextUrl);
+    } else if (key === "p") {
+      event.preventDefault();
+      goTo(previousUrl);
+    }
+  });
+}
+
+function setupMediaSession(video: HTMLVideoElement) {
+  if (!("mediaSession" in navigator)) return;
+
+  const previousUrl = video.dataset.previousUrl || "";
+  const nextUrl = video.dataset.nextUrl || "";
+  const seek = (seconds: number) => {
+    if (!Number.isFinite(video.duration)) return;
+    video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
+  };
+
+  navigator.mediaSession.setActionHandler("seekbackward", () => seek(-10));
+  navigator.mediaSession.setActionHandler("seekforward", () => seek(10));
+  navigator.mediaSession.setActionHandler("previoustrack", previousUrl ? () => (window.location.href = previousUrl) : null);
+  navigator.mediaSession.setActionHandler("nexttrack", nextUrl ? () => (window.location.href = nextUrl) : null);
 }
 
 function toVtt(subtitle: string) {

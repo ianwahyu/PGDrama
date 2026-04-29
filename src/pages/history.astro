@@ -11,18 +11,20 @@ import Header from "@components/Header.astro";
 
 <script>
   import { clearHistory, getHistory } from "../lib/localData";
+  import type { HistoryEntry } from "../lib/localData";
 
   const root = document.querySelector("#history-root");
   const clear = document.querySelector("#clear-history");
   const render = () => {
     if (!root) return;
-    const history = getHistory();
+    const history = groupHistoryByContent(getHistory());
     root.innerHTML = "";
     if (!history.length) {
       root.innerHTML = `<div class="soft-panel p-8 text-center"><p class="text-xl font-black">Belum ada riwayat</p><p class="mt-2 text-sm font-bold text-content-100">Mulai tonton episode untuk menyimpan progress.</p></div>`;
       return;
     }
-    for (const item of history) {
+    for (const group of history) {
+      const item = group.latest;
       const href = `/${item.type}/${item.id}/watch/${item.episode_index}`;
       const percent = item.duration_seconds ? Math.min(100, Math.round((item.progress_seconds / item.duration_seconds) * 100)) : 0;
       const row = document.createElement("a");
@@ -32,7 +34,8 @@ import Header from "@components/Header.astro";
         <img class="h-24 w-16 border-2 border-content-50 bg-base-800 object-cover" src="${item.cover_url || ""}" alt="${item.title}" loading="lazy">
         <div class="min-w-0 flex-1">
           <p class="line-clamp-1 font-black">${item.title}</p>
-          <p class="mt-1 text-sm font-bold">Episode ${item.episode_index} - ${percent}%</p>
+          <p class="mt-1 text-sm font-bold">Lanjut Episode ${item.episode_index} - ${percent}%</p>
+          <p class="mt-1 text-xs font-black uppercase">${group.count} episode ditonton</p>
           <div class="mt-4 h-3 overflow-hidden border-2 border-content-50 bg-base-950"><span class="block h-full bg-pink-500" style="width:${percent}%"></span></div>
         </div>
       `;
@@ -44,4 +47,28 @@ import Header from "@components/Header.astro";
     render();
   });
   render();
+
+  function groupHistoryByContent(history: HistoryEntry[]) {
+    const groups = new Map<string, { latest: HistoryEntry; count: number; episodeIndexes: Set<number> }>();
+
+    for (const item of history) {
+      const key = `${item.type}:${item.id}`;
+      const existing = groups.get(key);
+      const watchedAt = new Date(item.watched_at).getTime();
+      const existingWatchedAt = existing ? new Date(existing.latest.watched_at).getTime() : 0;
+
+      if (!existing) {
+        groups.set(key, { latest: item, count: 1, episodeIndexes: new Set([item.episode_index]) });
+        continue;
+      }
+
+      existing.episodeIndexes.add(item.episode_index);
+      existing.count = existing.episodeIndexes.size;
+      if (watchedAt > existingWatchedAt) {
+        existing.latest = item;
+      }
+    }
+
+    return Array.from(groups.values()).sort((a, b) => new Date(b.latest.watched_at).getTime() - new Date(a.latest.watched_at).getTime());
+  }
 </script>
