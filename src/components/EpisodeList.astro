@@ -13,15 +13,20 @@ const { episodes = [], watchBase = "", contentId = "", contentType = "" } = Astr
   <h2 class="mb-4 text-2xl font-black">Episode</h2>
   <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-episode-list data-content-id={contentId} data-content-type={contentType}>
     {
-      episodes.map((episode) => (
-        <a class="episode-link soft-panel flex items-center justify-between rounded-2xl p-4 transition hover:bg-cream-50/12" href={`${watchBase}/${episode.index}`} data-episode-id={episode.id} data-episode-index={episode.index}>
-          <div>
-            <p class="text-sm font-black">Episode {episode.index}</p>
-            <p class="mt-1 line-clamp-1 text-xs text-cream-100/55">{episode.title}</p>
-          </div>
-          <span class="watched-pill hidden rounded-full bg-sage-300/18 px-2 py-1 text-[0.65rem] font-black text-sage-300">Sudah</span>
-        </a>
-      ))
+      episodes.map((episode) => {
+        const isTitleRedundant = episode.title.toLowerCase() === `episode ${episode.index}` || episode.title.toLowerCase() === `ep ${episode.index}` || episode.title === `${episode.index}`;
+        return (
+          <a class="episode-link soft-panel flex items-center justify-between rounded-2xl p-4 transition hover:-translate-y-1 hover:bg-content-50/12 hover:shadow-lg" href={`${watchBase}/${episode.index}`} data-episode-id={episode.id} data-episode-index={episode.index}>
+            <div class="flex items-center gap-3">
+              <div class="grid size-8 place-items-center rounded-full bg-content-50/10 text-xs font-bold">{episode.index}</div>
+              <div>
+                <p class="text-sm font-black">{isTitleRedundant ? `Episode ${episode.index}` : episode.title}</p>
+              </div>
+            </div>
+            <span class="watched-pill hidden rounded-full bg-primary-300/18 px-2 py-1 text-[0.65rem] font-black text-primary-300">Sudah</span>
+          </a>
+        );
+      })
     }
   </div>
 </section>

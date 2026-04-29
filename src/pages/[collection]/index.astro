@@ -32,14 +32,14 @@ const result = await listContent(collection, params);
   <Header eyebrow="Katalog" title={labelFor(collection)} subtitle="Browse ringan dengan pagination supaya tetap hemat data dan RAM." />
   <SearchBar />
 
-  <form class="mb-6 grid gap-3 rounded-[1.4rem] bg-cream-50/6 p-3 sm:grid-cols-4" method="get">
-    <input class="rounded-2xl bg-ink-900 px-4 py-3 text-sm font-semibold outline-none" name="language" placeholder="language: id/en/ko" value={Astro.url.searchParams.get("language") ?? ""} />
-    <input class="rounded-2xl bg-ink-900 px-4 py-3 text-sm font-semibold outline-none" name="genre" placeholder="genre/tag" value={Astro.url.searchParams.get("genre") ?? ""} />
-    <select class="rounded-2xl bg-ink-900 px-4 py-3 text-sm font-semibold outline-none" name="sort_by">
+  <form class="mb-6 grid gap-3 rounded-[1.4rem] bg-content-50/6 p-3 sm:grid-cols-4" method="get">
+    <input class="rounded-2xl bg-base-900 px-4 py-3 text-sm font-semibold outline-none" name="language" placeholder="language: id/en/ko" value={Astro.url.searchParams.get("language") ?? ""} />
+    <input class="rounded-2xl bg-base-900 px-4 py-3 text-sm font-semibold outline-none" name="genre" placeholder="genre/tag" value={Astro.url.searchParams.get("genre") ?? ""} />
+    <select class="rounded-2xl bg-base-900 px-4 py-3 text-sm font-semibold outline-none" name="sort_by">
       <option value="">Sort default</option>
       {["updated_at", "play_count", "title", "chapter_count", "created_at"].map((value) => <option value={value} selected={Astro.url.searchParams.get("sort_by") === value}>{value}</option>)}
     </select>
-    <button class="rounded-2xl bg-sage-300 px-4 py-3 text-sm font-black text-ink-950">Filter</button>
+    <button class="rounded-2xl bg-primary-300 px-4 py-3 text-sm font-black text-base-950">Filter</button>
   </form>
 
   <ErrorState error={result.error} />

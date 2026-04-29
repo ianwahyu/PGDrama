@@ -18,17 +18,17 @@ const images = Object.values((current?.raw?.images ?? current?.raw?.pages ?? cur
 ---
 
 <AppShell title={`${item.title} Chapter ${chapter} - PGDrama`} compact>
-  <a class="mb-5 inline-flex rounded-full bg-cream-50/8 px-4 py-2 text-sm font-bold text-cream-100/70" href={`/baca/${category}/${id}`}>← Kembali ke detail</a>
+  <a class="mb-5 inline-flex rounded-full bg-content-50/8 px-4 py-2 text-sm font-bold text-content-100/70" href={`/baca/${category}/${id}`}>← Kembali ke detail</a>
   <header class="mb-5">
-    <p class="text-sm font-bold text-peach-300">Chapter {chapter}</p>
+    <p class="text-sm font-bold text-pink-300">Chapter {chapter}</p>
     <h1 class="text-3xl font-black">{item.title}</h1>
   </header>
   <div class="space-y-3">
     {
       images.length ? (
-        images.map((src) => <img class="mx-auto w-full rounded-xl bg-ink-800" src={src} alt={`${item.title} chapter ${chapter}`} loading="lazy" />)
+        images.map((src) => <img class="mx-auto w-full rounded-xl bg-base-800" src={src} alt={`${item.title} chapter ${chapter}`} loading="lazy" />)
       ) : (
-        <div class="soft-panel rounded-[1.5rem] p-8 text-center text-cream-100/65">Halaman chapter belum tersedia.</div>
+        <div class="soft-panel rounded-[1.5rem] p-8 text-center text-content-100/65">Halaman chapter belum tersedia.</div>
       )
     }
   </div>

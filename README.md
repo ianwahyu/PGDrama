@@ -2,13 +2,14 @@
 
 Web katalog dan player SPlay yang dibuat ringan untuk VPS kecil: Astro SSR, Tailwind CSS, SQLite cache bawaan Node, dan localStorage untuk favorit/history.
 
-## Fitur V1
+## Fitur Utama & UI/UX
 
-- Katalog mobile-first untuk drama, anime, MovieBox, iQIYI, WeTV, DrakorIndo, dan Baca.
-- Search, pagination, detail konten, episode list, video player, dan reader manga ringan.
-- API key SPlay tetap server-only melalui env.
-- Cache metadata memakai SQLite agar hemat rate limit.
-- Favorit dan history tersimpan lokal di browser tanpa login.
+- **Dark & Light Mode**: Desain modern menggunakan palet *Soft Blue* dengan aksen *Soft Pink* & *Soft Yellow*. Menyimpan preferensi tema secara otomatis.
+- **Hero Carousel**: Menampilkan drama trending di halaman utama menggunakan fitur scroll yang responsif.
+- **Smart Search Auto-suggest**: Fitur pencarian instan dengan suguhan *dropdown* hasil secara dinamis.
+- **Binge-Watching Player**: Navigasi *Episode Selanjutnya* dan *Sebelumnya* yang menyatu dengan daftar episode di halaman *player*.
+- **Micro-Interactions**: Efek *hover* elegan pada poster dengan *Play Button* overlay dan fitur *Skeleton Loading/Shimmer* untuk pengalaman yang mulus.
+- **Backend Ringan & Aman**: API key SPlay tetap server-only melalui env. Cache metadata memakai SQLite agar hemat rate limit. Favorit dan history tersimpan lokal di browser tanpa login.
 
 ## Setup Lokal
 

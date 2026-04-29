@@ -12,7 +12,8 @@ const DEFAULTS = {
 };
 
 export function getEnv(): AppEnv {
-  const apiKey = process.env.SPLAY_API_KEY;
+  const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env ?? {};
+  const apiKey = process.env.SPLAY_API_KEY ?? viteEnv.SPLAY_API_KEY;
 
   if (!apiKey) {
     throw new Error("Missing SPLAY_API_KEY. Copy .env.example to .env.local and set your API key.");
@@ -20,8 +21,8 @@ export function getEnv(): AppEnv {
 
   return {
     SPLAY_API_KEY: apiKey,
-    SPLAY_BASE_URL: process.env.SPLAY_BASE_URL ?? DEFAULTS.SPLAY_BASE_URL,
-    CACHE_DB_PATH: process.env.CACHE_DB_PATH ?? DEFAULTS.CACHE_DB_PATH,
-    CACHE_TTL_SECONDS: Number(process.env.CACHE_TTL_SECONDS ?? DEFAULTS.CACHE_TTL_SECONDS)
+    SPLAY_BASE_URL: process.env.SPLAY_BASE_URL ?? viteEnv.SPLAY_BASE_URL ?? DEFAULTS.SPLAY_BASE_URL,
+    CACHE_DB_PATH: process.env.CACHE_DB_PATH ?? viteEnv.CACHE_DB_PATH ?? DEFAULTS.CACHE_DB_PATH,
+    CACHE_TTL_SECONDS: Number(process.env.CACHE_TTL_SECONDS ?? viteEnv.CACHE_TTL_SECONDS ?? DEFAULTS.CACHE_TTL_SECONDS)
   };
 }

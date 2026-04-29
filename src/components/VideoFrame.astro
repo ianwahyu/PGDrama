@@ -17,14 +17,14 @@ const { src, title, poster, content } = Astro.props;
           data-content={JSON.stringify(content)}
         />
       ) : (
-        <div class="grid h-full place-items-center p-6 text-center text-cream-100/65">
+        <div class="grid h-full place-items-center p-6 text-center text-content-100/65">
           Video belum tersedia untuk plan/API saat ini.
         </div>
       )
     }
   </div>
   <div class="p-4">
-    <p class="text-sm font-bold text-peach-300">Sekarang diputar</p>
+    <p class="text-sm font-bold text-pink-300">Sekarang diputar</p>
     <h1 class="mt-1 text-2xl font-black">{title}</h1>
   </div>
 </section>

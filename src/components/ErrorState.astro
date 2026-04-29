@@ -4,9 +4,9 @@ const { error } = Astro.props;
 
 {
   error && (
-    <div class="rounded-[1.5rem] border border-peach-300/25 bg-peach-500/10 p-5 text-peach-300">
+    <div class="rounded-[1.5rem] border border-pink-300/25 bg-pink-500/10 p-5 text-pink-300">
       <p class="font-black">Tidak bisa memuat data</p>
-      <p class="mt-1 text-sm text-cream-100/70">{error.message}</p>
+      <p class="mt-1 text-sm text-content-100/70">{error.message}</p>
     </div>
   )
 }

@@ -2,15 +2,79 @@
 const { q = "", action = "/search", placeholder = "Cari drama, anime, movie..." } = Astro.props;
 ---
 
-<form action={action} class="soft-panel flex items-center gap-2 rounded-[1.5rem] p-2">
-  <input
-    class="min-h-12 flex-1 rounded-[1.1rem] border-0 bg-transparent px-4 text-base font-semibold text-cream-50 outline-none placeholder:text-cream-100/40"
-    type="search"
-    name="q"
-    value={q}
-    placeholder={placeholder}
-  />
-  <button class="min-h-12 rounded-[1.1rem] bg-peach-300 px-5 text-sm font-black text-ink-950 transition hover:bg-peach-500" type="submit">
-    Cari
-  </button>
-</form>
+<div class="relative w-full" id="search-container">
+  <form action={action} class="soft-panel flex items-center gap-2 rounded-[1.5rem] p-2 relative z-20">
+    <input
+      id="search-input"
+      class="min-h-12 flex-1 rounded-[1.1rem] border-0 bg-transparent px-4 text-base font-semibold text-content-50 outline-none placeholder:text-content-100/40"
+      type="search"
+      name="q"
+      value={q}
+      placeholder={placeholder}
+      autocomplete="off"
+    />
+    <button class="min-h-12 rounded-[1.1rem] bg-pink-300 px-5 text-sm font-black text-base-950 transition hover:bg-pink-500" type="submit">
+      Cari
+    </button>
+  </form>
+
+  <div id="search-dropdown" class="absolute left-0 right-0 top-full mt-2 hidden max-h-[60vh] overflow-y-auto rounded-[1.5rem] border border-content-50/10 bg-base-900/95 p-2 shadow-2xl backdrop-blur-xl z-10 poster-shadow">
+    <div id="search-results" class="grid gap-1"></div>
+    <div id="search-loading" class="hidden p-4 text-center text-sm font-semibold text-content-100/60">Mencari...</div>
+  </div>
+</div>
+
+<script>
+  let debounceTimer;
+  const searchContainer = document.getElementById('search-container');
+  const searchInput = document.getElementById('search-input');
+  const searchDropdown = document.getElementById('search-dropdown');
+  const searchResults = document.getElementById('search-results');
+  const searchLoading = document.getElementById('search-loading');
+
+  searchInput?.addEventListener('input', (e) => {
+    const q = (e.target).value.trim();
+    if (!q) {
+      searchDropdown?.classList.add('hidden');
+      return;
+    }
+
+    searchDropdown?.classList.remove('hidden');
+    searchResults.innerHTML = '';
+    searchLoading?.classList.remove('hidden');
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        
+        searchLoading?.classList.add('hidden');
+        if (!data.items || data.items.length === 0) {
+          searchResults.innerHTML = '<div class="p-4 text-center text-sm text-content-100/60">Tidak ada hasil</div>';
+          return;
+        }
+
+        searchResults.innerHTML = data.items.slice(0, 5).map(item => `
+          <a href="/${item.type}/${item.id}" class="flex items-center gap-3 rounded-xl p-2 hover:bg-content-50/10 transition">
+            <img src="${item.cover_url}" class="h-14 w-10 object-cover rounded-md shimmer" />
+            <div class="flex-1 overflow-hidden">
+              <h4 class="truncate text-sm font-bold text-content-50">${item.title}</h4>
+              <p class="text-xs text-content-100/60">${item.provider || item.type}</p>
+            </div>
+          </a>
+        `).join('');
+      } catch (err) {
+        searchLoading?.classList.add('hidden');
+        searchResults.innerHTML = '<div class="p-4 text-center text-sm text-pink-500">Gagal mencari data</div>';
+      }
+    }, 400);
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchContainer?.contains(e.target)) {
+      searchDropdown?.classList.add('hidden');
+    }
+  });
+</script>

@@ -24,15 +24,32 @@ try {
     subtitle="Jelajahi drama pendek, anime, movie, drakor, dan manga dari SPlay dalam tampilan soft-modern yang hemat resource."
   />
 
+  {trending.items.length > 0 && (
+    <section class="mb-10 w-full overflow-hidden rounded-[1.5rem] md:rounded-[2rem] poster-shadow">
+      <div class="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {trending.items.slice(0, 5).map((item, index) => (
+          <a href={`/dramas/${item.id}`} class="relative min-w-full snap-center block aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9]">
+            <img class="absolute inset-0 h-full w-full object-cover shimmer" src={item.cover_url} alt={item.title} loading="eager" />
+            <div class="absolute inset-0 bg-gradient-to-t from-base-950 via-base-950/50 to-transparent"></div>
+            <div class="absolute bottom-0 left-0 p-6 md:p-10 w-full md:w-2/3">
+              <span class="inline-block rounded-full bg-pink-500/80 px-3 py-1 text-xs font-bold text-white mb-3 backdrop-blur-md">Trending #{index + 1}</span>
+              <h2 class="text-2xl md:text-4xl font-black text-content-50 line-clamp-2 drop-shadow-md">{item.title}</h2>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
   <SearchBar />
 
   <section class="my-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     {
       CONTENT_TYPES.map((content) => (
-        <a class="soft-panel group rounded-[1.4rem] p-5 transition hover:-translate-y-1 hover:bg-cream-50/12" href={content.href}>
+        <a class="soft-panel group rounded-[1.4rem] p-5 transition hover:-translate-y-1 hover:bg-content-50/12" href={content.href}>
           <span class:list={["mb-5 block size-3 rounded-full", content.accent]} />
           <p class="text-lg font-black">{content.label}</p>
-          <p class="mt-2 text-sm text-cream-100/58">Buka katalog</p>
+          <p class="mt-2 text-sm text-content-100/58">Buka katalog</p>
         </a>
       ))
     }
@@ -41,7 +58,7 @@ try {
   <section class="my-8">
     <h2 class="mb-4 text-2xl font-black">Baca</h2>
     <div class="grid gap-3 sm:grid-cols-3">
-      {BACA_CATEGORIES.map((item) => <a class="rounded-[1.2rem] bg-cream-50/8 p-4 font-black hover:bg-cream-50/12" href={item.href}>{item.label}</a>)}
+      {BACA_CATEGORIES.map((item) => <a class="rounded-[1.2rem] bg-content-50/8 p-4 font-black hover:bg-content-50/12" href={item.href}>{item.label}</a>)}
     </div>
   </section>
 

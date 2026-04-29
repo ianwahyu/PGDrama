@@ -3,7 +3,6 @@ import { getEnv } from "./env";
 import type { AppError, BacaCategory, ContentType, EpisodeItem, NormalizedItem, NormalizedList } from "./types";
 
 const DEFAULT_META = { page: 1, per_page: 20, total: 0, total_pages: 0 };
-const CACHEABLE_TTL_SECONDS = getEnv().CACHE_TTL_SECONDS;
 const EPISODE_TTL_SECONDS = 60;
 
 type QueryValue = string | number | undefined | null;
@@ -118,7 +117,7 @@ function normalizeListPayload(payload: any, type: string): NormalizedList {
 
 export async function listContent(type: ContentType, params: URLSearchParams): Promise<NormalizedList> {
   const path = endpointFor(type);
-  return getCachedOrFetch(cacheKey(path, params), CACHEABLE_TTL_SECONDS, async () => {
+  return getCachedOrFetch(cacheKey(path, params), getEnv().CACHE_TTL_SECONDS, async () => {
     try {
       return normalizeListPayload(await requestJson(path, params), type);
     } catch (error) {
@@ -129,7 +128,7 @@ export async function listContent(type: ContentType, params: URLSearchParams): P
 
 export async function listBaca(category: BacaCategory, params: URLSearchParams): Promise<NormalizedList> {
   const path = `/api/baca/${category}`;
-  return getCachedOrFetch(cacheKey(path, params), CACHEABLE_TTL_SECONDS, async () => {
+  return getCachedOrFetch(cacheKey(path, params), getEnv().CACHE_TTL_SECONDS, async () => {
     try {
       return normalizeListPayload(await requestJson(path, params), `baca-${category}`);
     } catch (error) {
@@ -140,21 +139,21 @@ export async function listBaca(category: BacaCategory, params: URLSearchParams):
 
 export async function getPopularDramas() {
   const params = toQuery({ per_page: 12 });
-  return getCachedOrFetch(cacheKey("/api/dramas/popular", params), CACHEABLE_TTL_SECONDS, async () =>
+  return getCachedOrFetch(cacheKey("/api/dramas/popular", params), getEnv().CACHE_TTL_SECONDS, async () =>
     normalizeListPayload(await requestJson("/api/dramas/popular", params), "dramas")
   );
 }
 
 export async function getTrendingDramas() {
   const params = toQuery({ per_page: 12 });
-  return getCachedOrFetch(cacheKey("/api/dramas/trending", params), CACHEABLE_TTL_SECONDS, async () =>
+  return getCachedOrFetch(cacheKey("/api/dramas/trending", params), getEnv().CACHE_TTL_SECONDS, async () =>
     normalizeListPayload(await requestJson("/api/dramas/trending", params), "dramas")
   );
 }
 
 export async function searchContent(q: string, perPage = 24): Promise<NormalizedList> {
   const params = toQuery({ q, per_page: perPage });
-  return getCachedOrFetch(cacheKey("/api/search", params), CACHEABLE_TTL_SECONDS, async () => {
+  return getCachedOrFetch(cacheKey("/api/search", params), getEnv().CACHE_TTL_SECONDS, async () => {
     try {
       return normalizeListPayload(await requestJson("/api/search", params), "dramas");
     } catch (error) {
@@ -165,7 +164,7 @@ export async function searchContent(q: string, perPage = 24): Promise<Normalized
 
 export async function getDetail(type: ContentType, id: string) {
   const path = `${endpointFor(type)}/${id}`;
-  return getCachedOrFetch(path, CACHEABLE_TTL_SECONDS, async () => {
+  return getCachedOrFetch(path, getEnv().CACHE_TTL_SECONDS, async () => {
     const payload: any = await requestJson(path);
     const raw = payload?.data?.drama ?? payload?.data?.item ?? payload?.data ?? {};
     return {
@@ -177,7 +176,7 @@ export async function getDetail(type: ContentType, id: string) {
 
 export async function getBacaDetail(category: BacaCategory, id: string) {
   const path = `/api/baca/${category}/${id}`;
-  return getCachedOrFetch(path, CACHEABLE_TTL_SECONDS, async () => {
+  return getCachedOrFetch(path, getEnv().CACHE_TTL_SECONDS, async () => {
     const payload: any = await requestJson(path);
     const raw = payload?.data?.item ?? payload?.data ?? {};
     return {

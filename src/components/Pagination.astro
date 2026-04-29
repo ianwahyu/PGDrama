@@ -11,11 +11,11 @@ const nextHref = next ? `${next.pathname}${next.search}` : "#";
 ---
 
 <div class="mt-8 flex items-center justify-between gap-3">
-  <a class:list={["rounded-full px-5 py-3 text-sm font-black", previous ? "bg-cream-50/10 text-cream-50" : "pointer-events-none bg-cream-50/5 text-cream-50/30"]} href={previousHref}>
+  <a class:list={["rounded-full px-5 py-3 text-sm font-black", previous ? "bg-content-50/10 text-content-50" : "pointer-events-none bg-content-50/5 text-content-50/30"]} href={previousHref}>
     Sebelumnya
   </a>
-  <span class="text-sm font-bold text-cream-100/60">Page {current} / {Math.max(total, 1)}</span>
-  <a class:list={["rounded-full px-5 py-3 text-sm font-black", next ? "bg-peach-300 text-ink-950" : "pointer-events-none bg-cream-50/5 text-cream-50/30"]} href={nextHref}>
+  <span class="text-sm font-bold text-content-100/60">Page {current} / {Math.max(total, 1)}</span>
+  <a class:list={["rounded-full px-5 py-3 text-sm font-black", next ? "bg-pink-300 text-base-950" : "pointer-events-none bg-content-50/5 text-content-50/30"]} href={nextHref}>
     Berikutnya
   </a>
 </div>
