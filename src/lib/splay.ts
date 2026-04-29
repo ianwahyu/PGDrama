@@ -80,7 +80,7 @@ async function requestJson<T>(path: string, params = new URLSearchParams(), retr
   params.forEach((value, key) => url.searchParams.set(key, value));
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
   try {
     const response = await fetch(url, {

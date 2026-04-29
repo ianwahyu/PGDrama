@@ -38,6 +38,8 @@ function getDb() {
   return db;
 }
 
+const revalidating = new Set<string>();
+
 export async function getCachedOrFetch<T>(
   key: string,
   ttlSeconds: number,
@@ -49,10 +51,39 @@ export async function getCachedOrFetch<T>(
     .prepare("SELECT value_json, expires_at FROM cache_entries WHERE key = ?")
     .get(key) as CacheRow | undefined;
 
+  // Cache HIT (fresh) → return immediately
   if (row && row.expires_at > now) {
     return JSON.parse(row.value_json) as T;
   }
 
+  // Cache STALE (ada data lama, tapi sudah expired) → sajikan dulu, refresh di background
+  if (row && !revalidating.has(key)) {
+    revalidating.add(key);
+    // Refresh cache di background tanpa memblokir user
+    Promise.resolve()
+      .then(() => fetcher())
+      .then((value) => {
+        try {
+          database
+            .prepare(
+              `INSERT INTO cache_entries (key, value_json, expires_at, created_at)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(key) DO UPDATE SET
+                 value_json = excluded.value_json,
+                 expires_at = excluded.expires_at`
+            )
+            .run(key, JSON.stringify(value), now + ttlSeconds, now);
+        } finally {
+          revalidating.delete(key);
+        }
+      })
+      .catch(() => revalidating.delete(key));
+
+    // Sajikan data stale langsung ke user (tidak nunggu)
+    return JSON.parse(row.value_json) as T;
+  }
+
+  // Cache MISS (tidak ada data sama sekali) → fetch dan tunggu
   const value = await fetcher();
   database
     .prepare(
