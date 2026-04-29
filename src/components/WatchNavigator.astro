@@ -1,0 +1,51 @@
+---
+import type { WatchNavigation } from "@lib/watch";
+
+const { navigation } = Astro.props as { navigation: WatchNavigation };
+const { previous, next, episodes } = navigation;
+---
+
+{(previous || next || episodes.length > 0) && (
+  <section class="mt-5 space-y-5">
+    <nav class="grid gap-3 sm:grid-cols-2" aria-label="Navigasi episode">
+      {previous ? (
+        <a class="brutal-card p-3 sm:p-4" href={previous.url} rel="prev">
+          <span class="text-xs font-black uppercase text-content-100">Episode sebelumnya</span>
+          <strong class="mt-1 block text-lg">Ep {previous.index}</strong>
+        </a>
+      ) : (
+        <div class="hidden sm:block"></div>
+      )}
+      {next && (
+        <a class="brutal-card is-primary p-3 sm:p-4" href={next.url} rel="next">
+          <span class="text-xs font-black uppercase">Episode selanjutnya</span>
+          <strong class="mt-1 block text-lg">Ep {next.index}</strong>
+        </a>
+      )}
+    </nav>
+
+    {episodes.length > 0 && (
+      <div class="soft-panel p-3 sm:p-4">
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-base font-black">Semua Episode</h2>
+          <span class="brutal-sticker bg-yellow-500 px-2 py-1 text-xs font-black">{episodes.length} episode</span>
+        </div>
+        <div class="grid max-h-52 grid-cols-4 gap-2 overflow-y-auto pr-1 min-[380px]:grid-cols-5 sm:grid-cols-8 md:grid-cols-10">
+          {episodes.map((episode) => (
+            <a
+              class:list={[
+                "grid aspect-square place-items-center border-2 border-content-50 text-sm font-black transition hover:-translate-y-0.5",
+                episode.isCurrent ? "bg-primary-500 text-base-950 shadow-[3px_3px_0_var(--panel-shadow)]" : "bg-base-950 text-content-50 hover:bg-yellow-500 hover:text-base-950"
+              ]}
+              href={episode.url}
+              aria-current={episode.isCurrent ? "page" : undefined}
+              title={episode.title}
+            >
+              {episode.index}
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </section>
+)}

@@ -3,7 +3,7 @@ import { getLatestHistoryFor, saveHistory } from "./localData";
 const video = document.querySelector<HTMLVideoElement>("#video-player");
 
 if (video) {
-  const content = JSON.parse(video.dataset.content || "{}");
+  const content = safeJson(video.dataset.content);
   const src = video.currentSrc || video.getAttribute("src") || "";
 
   if (src.endsWith(".m3u8") && !video.canPlayType("application/vnd.apple.mpegurl")) {
@@ -15,37 +15,7 @@ if (video) {
     });
   }
 
-  // Handle subtitle: convert SRT to VTT if needed, inject as object URL
-  const track = video.querySelector<HTMLTrackElement>("track");
-  if (track) {
-    const subtitleUrl = track.getAttribute("src") || "";
-    if (subtitleUrl && (subtitleUrl.endsWith(".srt") || !subtitleUrl.endsWith(".vtt"))) {
-      fetch(subtitleUrl)
-        .then((res) => res.text())
-        .then((srt) => {
-          // SRT → VTT conversion
-          const vtt = "WEBVTT\n\n" + srt
-            .replace(/\r\n/g, "\n")
-            .replace(/\r/g, "\n")
-            .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2") // comma to dot for timestamp
-            .trim();
-          const blob = new Blob([vtt], { type: "text/vtt" });
-          const objectUrl = URL.createObjectURL(blob);
-          track.setAttribute("src", objectUrl);
-          track.track.mode = "showing";
-        })
-        .catch(() => {
-          // Subtitle fetch failed, silently ignore
-        });
-    } else if (subtitleUrl.endsWith(".vtt")) {
-      // VTT native — just activate it
-      video.addEventListener("loadedmetadata", () => {
-        if (video.textTracks.length > 0) {
-          video.textTracks[0].mode = "showing";
-        }
-      });
-    }
-  }
+  setupSubtitle(video);
 
   const latest = getLatestHistoryFor(String(content.id), String(content.type));
   if (latest?.episode_id === String(content.episode_id) && latest.progress_seconds > 15) {
@@ -73,4 +43,54 @@ if (video) {
     persist();
     window.clearInterval(interval);
   });
+}
+
+function safeJson(value: string | undefined) {
+  try {
+    return JSON.parse(value || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function setupSubtitle(video: HTMLVideoElement) {
+  const track = video.querySelector<HTMLTrackElement>("track");
+  const subtitleUrl = track?.getAttribute("src")?.trim();
+
+  if (!track || !subtitleUrl || ["null", "undefined", "none", "-"].includes(subtitleUrl.toLowerCase())) {
+    track?.remove();
+    return;
+  }
+
+  const activateFirstTrack = () => {
+    if (video.textTracks.length > 0) {
+      video.textTracks[0].mode = "showing";
+    }
+  };
+
+  if (subtitleUrl.endsWith(".vtt")) {
+    video.addEventListener("loadedmetadata", activateFirstTrack, { once: true });
+    return;
+  }
+
+  fetch(subtitleUrl)
+    .then((response) => {
+      if (!response.ok) throw new Error("Subtitle unavailable");
+      return response.text();
+    })
+    .then((subtitle) => {
+      const objectUrl = URL.createObjectURL(new Blob([toVtt(subtitle)], { type: "text/vtt" }));
+      track.setAttribute("src", objectUrl);
+      track.track.mode = "showing";
+      window.addEventListener("pagehide", () => URL.revokeObjectURL(objectUrl), { once: true });
+    })
+    .catch(() => {
+      track.remove();
+    });
+}
+
+function toVtt(subtitle: string) {
+  const normalized = subtitle.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+  if (normalized.startsWith("WEBVTT")) return normalized;
+  return `WEBVTT\n\n${normalized.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2")}`;
 }

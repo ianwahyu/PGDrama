@@ -3,24 +3,24 @@ const { q = "", action = "/search", placeholder = "Cari drama, anime, movie..." 
 ---
 
 <div class="relative w-full" id="search-container">
-  <form action={action} class="soft-panel flex items-center gap-2 rounded-[1.5rem] p-2 relative z-20">
+  <form action={action} class="soft-panel relative z-20 flex flex-col items-stretch gap-2 p-2 sm:flex-row sm:items-center">
     <input
       id="search-input"
-      class="min-h-12 flex-1 rounded-[1.1rem] border-0 bg-transparent px-4 text-base font-semibold text-content-50 outline-none placeholder:text-content-100/40"
+      class="brutal-input min-h-12 min-w-0 flex-1 px-4 text-base font-black outline-none placeholder:text-content-100/50"
       type="search"
       name="q"
       value={q}
       placeholder={placeholder}
       autocomplete="off"
     />
-    <button class="min-h-12 rounded-[1.1rem] bg-primary-500 px-5 text-sm font-black text-base-950 transition hover:bg-primary-300" type="submit">
+    <button class="brutal-button min-h-12 w-full px-5 text-sm sm:w-auto" type="submit">
       Cari
     </button>
   </form>
 
-  <div id="search-dropdown" class="absolute left-0 right-0 top-full mt-2 hidden max-h-[60vh] overflow-y-auto rounded-[1.5rem] border border-content-50/10 bg-base-900/95 p-2 shadow-2xl backdrop-blur-xl z-10 poster-shadow">
-    <div id="search-results" class="grid gap-1"></div>
-    <div id="search-loading" class="hidden p-4 text-center text-sm font-semibold text-content-100/60">Mencari...</div>
+  <div id="search-dropdown" class="absolute left-0 right-0 top-full z-10 mt-3 hidden max-h-[60vh] overflow-y-auto border-2 border-content-50 bg-base-900 p-2 shadow-[5px_5px_0_var(--panel-shadow)]">
+    <div id="search-results" class="grid gap-2"></div>
+    <div id="search-loading" class="hidden border-2 border-content-50 bg-yellow-500 p-4 text-center text-sm font-black text-base-950">Mencari...</div>
   </div>
 </div>
 
@@ -52,29 +52,28 @@ const { q = "", action = "/search", placeholder = "Cari drama, anime, movie..." 
         
         searchLoading?.classList.add('hidden');
         if (!data.items || data.items.length === 0) {
-          if (searchResults) searchResults.innerHTML = '<div class="p-4 text-center text-sm text-content-100/60">Tidak ada hasil</div>';
+          if (searchResults) searchResults.innerHTML = '<div class="border-2 border-content-50 bg-base-950 p-4 text-center text-sm font-black text-content-100">Tidak ada hasil</div>';
           return;
         }
 
         if (searchResults) {
           searchResults.innerHTML = data.items.slice(0, 5).map((item: any) => `
-            <a href="/${item.type}/${item.id}" class="flex items-center gap-3 rounded-xl p-2 hover:bg-content-50/10 transition">
-              <img src="${item.cover_url}" class="h-14 w-10 object-cover rounded-md shimmer" />
-              <div class="flex-1 overflow-hidden">
-                <h4 class="truncate text-sm font-bold text-content-50">${item.title}</h4>
-                <p class="text-xs text-content-100/60">${item.provider || item.type}</p>
+            <a href="/${item.type}/${item.id}" class="flex items-center gap-3 border-2 border-content-50 bg-base-950 p-2 shadow-[3px_3px_0_var(--panel-shadow)] transition hover:-translate-y-0.5 hover:bg-primary-500 hover:text-base-950">
+              <img src="${item.cover_url || ''}" class="h-14 w-10 border-2 border-content-50 object-cover shimmer" />
+              <div class="min-w-0 flex-1">
+                <h4 class="truncate text-sm font-black">${item.title}</h4>
+                <p class="text-xs font-bold">${item.provider || item.type}</p>
               </div>
             </a>
           `).join('');
         }
       } catch (err) {
         searchLoading?.classList.add('hidden');
-        if (searchResults) searchResults.innerHTML = '<div class="p-4 text-center text-sm text-yellow-500">Gagal mencari data</div>';
+        if (searchResults) searchResults.innerHTML = '<div class="border-2 border-content-50 bg-pink-500 p-4 text-center text-sm font-black text-base-950">Gagal mencari data</div>';
       }
     }, 400);
   });
 
-  // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
     if (!searchContainer?.contains(e.target as Node)) {
       searchDropdown?.classList.add('hidden');

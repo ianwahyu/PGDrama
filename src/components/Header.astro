@@ -3,27 +3,27 @@ const { eyebrow = "SPlay Web", title, subtitle } = Astro.props;
 ---
 
 <header class="mb-7">
-  <div class="flex items-center justify-between gap-3">
-    <a href="/" class="inline-flex items-center gap-2 rounded-full border border-content-50/10 bg-content-50/8 px-3 py-2 text-sm font-bold text-content-50">
-      <span class="grid size-8 place-items-center rounded-full bg-primary-300 text-base-950">PG</span>
+  <div class="flex min-w-0 items-center justify-between gap-2">
+    <a href="/" class="brutal-button-secondary inline-flex items-center gap-2 px-3 py-2 text-sm text-content-50">
+      <span class="grid size-8 place-items-center border-2 border-content-50 bg-primary-500 text-base-950">PG</span>
       <span>PGDrama</span>
     </a>
     <div class="flex items-center gap-2">
-      <div class="hidden items-center gap-1 md:flex">
-        <a class="rounded-full px-4 py-2 text-sm font-semibold text-content-100/75 hover:bg-content-50/10" href="/dramas">Katalog</a>
-        <a class="rounded-full px-4 py-2 text-sm font-semibold text-content-100/75 hover:bg-content-50/10" href="/favorites">Favorit</a>
-        <a class="rounded-full px-4 py-2 text-sm font-semibold text-content-100/75 hover:bg-content-50/10" href="/history">History</a>
+      <div class="hidden items-center gap-2 md:flex">
+        <a class="brutal-button-secondary px-4 py-2 text-sm" href="/dramas">Katalog</a>
+        <a class="brutal-button-secondary px-4 py-2 text-sm" href="/favorites">Favorit</a>
+        <a class="brutal-button-secondary px-4 py-2 text-sm" href="/history">History</a>
       </div>
-      <button id="theme-toggle" class="grid size-10 place-items-center rounded-full bg-content-50/8 text-content-50 hover:bg-content-50/15" aria-label="Toggle Theme">
+      <button id="theme-toggle" class="brutal-button-secondary grid size-10 place-items-center text-content-50" aria-label="Toggle Theme">
         <svg id="theme-icon-dark" class="hidden size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-        <svg id="theme-icon-light" class="hidden size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <svg id="theme-icon-light" class="hidden size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0z"></path></svg>
       </button>
     </div>
   </div>
   <div class="mt-8 max-w-3xl">
-    <p class="text-sm font-bold uppercase tracking-[0.28em] text-primary-500">{eyebrow}</p>
-    <h1 class="mt-3 text-4xl font-black tracking-tight text-content-50 sm:text-5xl">{title}</h1>
-    {subtitle && <p class="mt-4 text-base leading-7 text-content-100/72 sm:text-lg">{subtitle}</p>}
+    <p class="brutal-sticker inline-block bg-pink-500 px-3 py-1 text-xs font-black uppercase text-base-950">{eyebrow}</p>
+    <h1 class="mt-4 text-3xl font-black leading-tight text-content-50 sm:text-5xl">{title}</h1>
+    {subtitle && <p class="mt-4 max-w-2xl border-l-4 border-content-50 bg-base-900 px-3 py-3 text-sm font-bold leading-6 text-content-100 sm:px-4 sm:text-lg sm:leading-7">{subtitle}</p>}
   </div>
 </header>
 
@@ -32,16 +32,15 @@ const { eyebrow = "SPlay Web", title, subtitle } = Astro.props;
   const darkIcon = document.getElementById('theme-icon-dark');
   const lightIcon = document.getElementById('theme-icon-light');
 
-  // Set initial icon based on root class
   if (document.documentElement.classList.contains('dark')) {
-    lightIcon.classList.remove('hidden');
+    lightIcon?.classList.remove('hidden');
   } else {
-    darkIcon.classList.remove('hidden');
+    darkIcon?.classList.remove('hidden');
   }
 
-  themeToggleBtn.addEventListener('click', () => {
-    darkIcon.classList.toggle('hidden');
-    lightIcon.classList.toggle('hidden');
+  themeToggleBtn?.addEventListener('click', () => {
+    darkIcon?.classList.toggle('hidden');
+    lightIcon?.classList.toggle('hidden');
 
     if (document.documentElement.classList.contains('dark')) {
       document.documentElement.classList.remove('dark');

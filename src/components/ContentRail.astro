@@ -11,10 +11,10 @@ const { title, items = [], basePath = "/dramas" } = Astro.props as {
 
 <section class="my-8">
   <div class="mb-4 flex items-end justify-between gap-3">
-    <h2 class="text-2xl font-black tracking-tight">{title}</h2>
-    <a class="text-sm font-bold text-pink-300" href={basePath}>Lihat semua</a>
+    <h2 class="brutal-sticker max-w-[70%] bg-yellow-500 px-3 py-1 text-lg font-black sm:text-xl">{title}</h2>
+    <a class="brutal-button-secondary px-3 py-2 text-xs" href={basePath}>Lihat semua</a>
   </div>
-  <div class="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3">
+  <div class="-mx-3 flex snap-x gap-4 overflow-x-auto px-3 pb-3 sm:-mx-4 sm:px-4">
     {items.map((item) => <div class="w-36 shrink-0 snap-start sm:w-44"><PosterCard item={item} href={`${basePath}/${item.id}`} /></div>)}
   </div>
 </section>

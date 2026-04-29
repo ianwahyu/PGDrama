@@ -10,20 +10,20 @@ const { episodes = [], watchBase = "", contentId = "", contentType = "" } = Astr
 ---
 
 <section class="mt-8">
-  <h2 class="mb-4 text-2xl font-black">Episode</h2>
+  <h2 class="brutal-sticker mb-4 inline-block bg-yellow-500 px-3 py-1 text-2xl font-black">Episode</h2>
   <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-episode-list data-content-id={contentId} data-content-type={contentType}>
     {
       episodes.map((episode) => {
         const isTitleRedundant = episode.title.toLowerCase() === `episode ${episode.index}` || episode.title.toLowerCase() === `ep ${episode.index}` || episode.title === `${episode.index}`;
         return (
-          <a class="episode-link soft-panel flex items-center justify-between rounded-2xl p-4 transition hover:-translate-y-1 hover:bg-content-50/12 hover:shadow-lg" href={`${watchBase}/${episode.index}`} data-episode-id={episode.id} data-episode-index={episode.index}>
-            <div class="flex items-center gap-3">
-              <div class="grid size-8 place-items-center rounded-full bg-content-50/10 text-xs font-bold">{episode.index}</div>
-              <div>
-                <p class="text-sm font-black">{isTitleRedundant ? `Episode ${episode.index}` : episode.title}</p>
+          <a class="episode-link brutal-card flex items-center justify-between gap-3 p-3 sm:p-4" href={`${watchBase}/${episode.index}`} data-episode-id={episode.id} data-episode-index={episode.index}>
+            <div class="flex min-w-0 items-center gap-3">
+              <div class="grid size-8 place-items-center border-2 border-content-50 bg-primary-500 text-xs font-black text-base-950">{episode.index}</div>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-black">{isTitleRedundant ? `Episode ${episode.index}` : episode.title}</p>
               </div>
             </div>
-            <span class="watched-pill hidden rounded-full bg-primary-300/18 px-2 py-1 text-[0.65rem] font-black text-primary-300">Sudah</span>
+            <span class="watched-pill hidden shrink-0 border-2 border-content-50 bg-pink-500 px-2 py-1 text-[0.65rem] font-black text-base-950">Sudah</span>
           </a>
         );
       })

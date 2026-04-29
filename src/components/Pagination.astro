@@ -10,12 +10,12 @@ const previousHref = previous ? `${previous.pathname}${previous.search}` : "#";
 const nextHref = next ? `${next.pathname}${next.search}` : "#";
 ---
 
-<div class="mt-8 flex items-center justify-between gap-3">
-  <a class:list={["rounded-full px-5 py-3 text-sm font-black", previous ? "bg-content-50/10 text-content-50" : "pointer-events-none bg-content-50/5 text-content-50/30"]} href={previousHref}>
+<div class="mt-8 flex flex-wrap items-center justify-between gap-3">
+  <a class:list={["px-4 py-3 text-sm sm:px-5", previous ? "brutal-button-secondary" : "pointer-events-none border-2 border-content-50 bg-base-800 text-content-50/35 px-4 py-3 font-black sm:px-5"]} href={previousHref}>
     Sebelumnya
   </a>
-  <span class="text-sm font-bold text-content-100/60">Page {current} / {Math.max(total, 1)}</span>
-  <a class:list={["rounded-full px-5 py-3 text-sm font-black", next ? "bg-pink-300 text-base-950" : "pointer-events-none bg-content-50/5 text-content-50/30"]} href={nextHref}>
+  <span class="brutal-sticker order-first w-full bg-yellow-500 px-3 py-2 text-center text-sm font-black sm:order-none sm:w-auto">Page {current} / {Math.max(total, 1)}</span>
+  <a class:list={["px-4 py-3 text-sm sm:px-5", next ? "brutal-button" : "pointer-events-none border-2 border-content-50 bg-base-800 text-content-50/35 px-4 py-3 font-black sm:px-5"]} href={nextHref}>
     Berikutnya
   </a>
 </div>

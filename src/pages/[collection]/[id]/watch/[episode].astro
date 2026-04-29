@@ -1,8 +1,10 @@
 ---
 import AppShell from "@components/AppShell.astro";
 import VideoFrame from "@components/VideoFrame.astro";
+import WatchNavigator from "@components/WatchNavigator.astro";
 import { isContentType } from "@lib/content";
 import { getDetail, getEpisode, getEpisodes } from "@lib/splay";
+import { createWatchNavigation, videoSourceFor } from "@lib/watch";
 
 const collection = Astro.params.collection ?? "";
 const id = Astro.params.id ?? "";
@@ -13,28 +15,28 @@ if (!isContentType(collection)) {
 }
 
 const [detail, episode, episodes] = await Promise.all([
-  getDetail(collection, id), 
+  getDetail(collection, id),
   getEpisode(collection, id, episodeIndex),
   getEpisodes(collection, id)
 ]);
 
 const item = detail.item;
-const videoSrc = episode?.video_url || Object.values(episode?.qualities ?? {})[0] || null;
-
-const currentIndex = episodes.findIndex(e => String(e.index) === episodeIndex || e.id === episodeIndex);
-const nextEpisode = currentIndex !== -1 && currentIndex < episodes.length - 1 ? episodes[currentIndex + 1] : null;
-const prevEpisode = currentIndex > 0 ? episodes[currentIndex - 1] : null;
-const nextEpisodeUrl = nextEpisode ? `/${collection}/${id}/watch/${nextEpisode.index}` : null;
+const videoSrc = videoSourceFor(episode);
+const navigation = createWatchNavigation({ collection, contentId: id, episodeKey: episodeIndex, episodes });
 ---
 
 <AppShell title={`${item.title} Episode ${episodeIndex} - PGDrama`} compact>
-  <a class="mb-5 inline-flex rounded-full bg-content-50/8 px-4 py-2 text-sm font-bold text-content-100/70 hover:bg-content-50/15" href={`/${collection}/${id}`}>← Kembali ke detail</a>
+  <a class="brutal-button-secondary mb-5 inline-flex px-4 py-2 text-sm" href={navigation.detailUrl}>
+    &larr; Kembali ke detail
+  </a>
+
   <VideoFrame
     src={videoSrc}
     subtitle={episode?.subtitle_url}
     poster={item.cover_url}
     title={`${item.title} - Episode ${episode?.index ?? episodeIndex}`}
-    nextEpisodeUrl={nextEpisodeUrl}
+    previousEpisode={navigation.previous}
+    nextEpisode={navigation.next}
     content={{
       id: item.id,
       type: collection,
@@ -45,26 +47,5 @@ const nextEpisodeUrl = nextEpisode ? `/${collection}/${id}/watch/${nextEpisode.i
     }}
   />
 
-  <div class="mt-6 flex items-center justify-between gap-4">
-    {prevEpisode ? <a class="rounded-full bg-content-50/10 px-5 py-3 text-sm font-bold text-content-50 hover:bg-content-50/20" href={`/${collection}/${id}/watch/${prevEpisode.index}`}>← Episode Sebelumnya</a> : <div></div>}
-    {nextEpisode && <a class="rounded-full bg-primary-500 px-5 py-3 text-sm font-bold text-base-950 shadow-lg hover:bg-primary-300 transition" href={nextEpisodeUrl}>Episode Selanjutnya →</a>}
-  </div>
-
-  {episodes.length > 0 && (
-    <div class="mt-8 soft-panel p-6 rounded-[1.5rem]">
-      <h3 class="text-lg font-bold mb-4 text-content-50">Semua Episode</h3>
-      <div class="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-48 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-content-50/20 [&::-webkit-scrollbar-thumb]:rounded-full">
-        {episodes.map((ep) => (
-          <a class:list={[
-              "flex aspect-square items-center justify-center rounded-xl text-sm font-bold transition",
-              String(ep.index) === episodeIndex || ep.id === episodeIndex ? "bg-primary-500 text-base-950" : "bg-content-50/10 hover:bg-content-50/20 text-content-50"
-            ]}
-            href={`/${collection}/${id}/watch/${ep.index}`}
-          >
-            {ep.index}
-          </a>
-        ))}
-      </div>
-    </div>
-  )}
+  <WatchNavigator navigation={navigation} />
 </AppShell>

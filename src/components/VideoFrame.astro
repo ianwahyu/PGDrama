@@ -1,9 +1,22 @@
 ---
-const { src, title, poster, content, nextEpisodeUrl, subtitle } = Astro.props;
+import type { EpisodeNavigationItem } from "@lib/watch";
+
+const { src, title, poster, content, nextEpisode, previousEpisode, subtitle } = Astro.props as {
+  src?: string | null;
+  title: string;
+  poster?: string | null;
+  content: Record<string, unknown>;
+  nextEpisode?: EpisodeNavigationItem | null;
+  previousEpisode?: EpisodeNavigationItem | null;
+  subtitle?: string | null;
+};
+
+const rawSubtitleSrc = typeof subtitle === "string" ? subtitle.trim() : "";
+const subtitleSrc = ["", "null", "undefined", "none", "-"].includes(rawSubtitleSrc.toLowerCase()) ? "" : rawSubtitleSrc;
 ---
 
-<section class="soft-panel overflow-hidden rounded-[1.6rem] relative group">
-  <div class="aspect-video bg-black relative">
+<section class="soft-panel relative overflow-hidden">
+  <div class="group relative aspect-video bg-black">
     {
       src ? (
         <video
@@ -16,23 +29,36 @@ const { src, title, poster, content, nextEpisodeUrl, subtitle } = Astro.props;
           preload="metadata"
           data-content={JSON.stringify(content)}
         >
-          {subtitle && <track kind="subtitles" src={subtitle} label="Indonesia" srclang="id" default />}
+          {subtitleSrc && <track kind="subtitles" src={subtitleSrc} label="Indonesia" srclang="id" default />}
         </video>
       ) : (
-        <div class="grid h-full place-items-center p-6 text-center text-content-100/65">
+        <div class="grid h-full place-items-center border-b-2 border-content-50 bg-base-800 p-6 text-center font-black text-content-100">
           Video belum tersedia untuk plan/API saat ini.
         </div>
       )
     }
-    {nextEpisodeUrl && (
-      <a href={nextEpisodeUrl} class="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 text-white px-4 py-2 rounded-full text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-primary-500 hover:text-base-950 flex items-center gap-2 shadow-lg z-10">
-        Next Ep <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </a>
+    {(previousEpisode || nextEpisode) && (
+      <div class="absolute inset-x-2 top-2 z-10 flex items-center justify-between gap-2 opacity-100 transition sm:inset-x-3 sm:top-3 sm:opacity-0 sm:group-hover:opacity-100">
+        {previousEpisode ? (
+          <a class="inline-flex min-h-9 items-center gap-1 border-2 border-white bg-black px-2 text-xs font-black text-white shadow-[2px_2px_0_#fff] hover:bg-primary-500 hover:text-base-950 sm:min-h-10 sm:gap-2 sm:px-3 sm:text-sm" href={previousEpisode.url} rel="prev">
+            <span aria-hidden="true">&larr;</span>
+            <span>Ep {previousEpisode.index}</span>
+          </a>
+        ) : (
+          <span></span>
+        )}
+        {nextEpisode && (
+          <a class="inline-flex min-h-9 items-center gap-1 border-2 border-white bg-primary-500 px-2 text-xs font-black text-base-950 shadow-[2px_2px_0_#fff] hover:bg-pink-500 sm:min-h-10 sm:gap-2 sm:px-3 sm:text-sm" href={nextEpisode.url} rel="next">
+            <span>Ep {nextEpisode.index}</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        )}
+      </div>
     )}
   </div>
-  <div class="p-4">
-    <p class="text-sm font-bold text-primary-300 uppercase tracking-widest">Sekarang diputar</p>
-    <h1 class="mt-1 text-2xl font-black">{title}</h1>
+  <div class="border-t-2 border-content-50 p-3 sm:p-4">
+    <p class="brutal-sticker inline-block bg-primary-500 px-2 py-1 text-xs font-black uppercase">Sekarang diputar</p>
+    <h1 class="mt-2 text-xl font-black leading-tight sm:text-2xl">{title}</h1>
   </div>
 </section>
 

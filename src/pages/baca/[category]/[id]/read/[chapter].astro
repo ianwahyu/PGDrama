@@ -18,17 +18,17 @@ const images = Object.values((current?.raw?.images ?? current?.raw?.pages ?? cur
 ---
 
 <AppShell title={`${item.title} Chapter ${chapter} - PGDrama`} compact>
-  <a class="mb-5 inline-flex rounded-full bg-content-50/8 px-4 py-2 text-sm font-bold text-content-100/70" href={`/baca/${category}/${id}`}>← Kembali ke detail</a>
-  <header class="mb-5">
-    <p class="text-sm font-bold text-pink-300">Chapter {chapter}</p>
-    <h1 class="text-3xl font-black">{item.title}</h1>
+  <a class="brutal-button-secondary mb-5 inline-flex px-4 py-2 text-sm" href={`/baca/${category}/${id}`}>&larr; Kembali ke detail</a>
+  <header class="soft-panel mb-5 p-4 sm:p-5">
+    <p class="brutal-sticker inline-block bg-pink-500 px-3 py-1 text-sm font-black">Chapter {chapter}</p>
+    <h1 class="mt-3 text-2xl font-black leading-tight sm:text-3xl">{item.title}</h1>
   </header>
-  <div class="space-y-3">
+  <div class="space-y-4">
     {
       images.length ? (
-        images.map((src) => <img class="mx-auto w-full rounded-xl bg-base-800" src={src} alt={`${item.title} chapter ${chapter}`} loading="lazy" />)
+        images.map((src) => <img class="mx-auto w-full border-2 border-content-50 bg-base-800 shadow-[5px_5px_0_var(--panel-shadow)]" src={src} alt={`${item.title} chapter ${chapter}`} loading="lazy" />)
       ) : (
-        <div class="soft-panel rounded-[1.5rem] p-8 text-center text-content-100/65">Halaman chapter belum tersedia.</div>
+        <div class="soft-panel p-8 text-center font-black text-content-100">Halaman chapter belum tersedia.</div>
       )
     }
   </div>

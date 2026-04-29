@@ -18,19 +18,19 @@ const item = detail.item;
 ---
 
 <AppShell title={`${item.title} - PGDrama`} compact>
-  <a class="mb-5 inline-flex rounded-full bg-content-50/8 px-4 py-2 text-sm font-bold text-content-100/70" href={`/${collection}`}>← {labelFor(collection)}</a>
+  <a class="brutal-button-secondary mb-5 inline-flex px-4 py-2 text-sm" href={`/${collection}`}>&larr; {labelFor(collection)}</a>
   <section class="grid gap-6 md:grid-cols-[15rem_1fr]">
-    <div class="poster-shadow overflow-hidden rounded-[1.6rem] bg-base-800">
+    <div class="poster-shadow overflow-hidden bg-base-800">
       <img class="aspect-[2/3] h-full w-full object-cover" src={item.cover_url || ""} alt={item.title} loading="eager" />
     </div>
-    <div class="soft-panel rounded-[1.8rem] p-6">
-      <p class="text-sm font-bold uppercase tracking-[0.24em] text-pink-300">{labelFor(collection)}</p>
-      <h1 class="mt-3 text-4xl font-black tracking-tight">{item.title}</h1>
-      <p class="mt-4 leading-7 text-content-100/70">{item.description || "Deskripsi belum tersedia."}</p>
+    <div class="soft-panel p-4 sm:p-6">
+      <p class="brutal-sticker inline-block bg-pink-500 px-3 py-1 text-sm font-black uppercase">{labelFor(collection)}</p>
+      <h1 class="mt-4 text-3xl font-black leading-tight sm:text-4xl">{item.title}</h1>
+      <p class="mt-4 border-l-4 border-content-50 bg-base-950 px-3 py-3 text-sm font-bold leading-6 text-content-100 sm:px-4 sm:text-base sm:leading-7">{item.description || "Deskripsi belum tersedia."}</p>
       <div class="mt-5 flex flex-wrap gap-2">
-        {item.provider && <span class="rounded-full bg-content-50/10 px-3 py-1 text-xs font-bold">{item.provider}</span>}
-        {item.language && <span class="rounded-full bg-content-50/10 px-3 py-1 text-xs font-bold">{item.language}</span>}
-        {item.episode_count && <span class="rounded-full bg-content-50/10 px-3 py-1 text-xs font-bold">{item.episode_count} episode</span>}
+        {item.provider && <span class="border-2 border-content-50 bg-yellow-500 px-3 py-1 text-xs font-black text-base-950">{item.provider}</span>}
+        {item.language && <span class="border-2 border-content-50 bg-primary-500 px-3 py-1 text-xs font-black text-base-950">{item.language}</span>}
+        {item.episode_count && <span class="border-2 border-content-50 bg-base-900 px-3 py-1 text-xs font-black">{item.episode_count} episode</span>}
       </div>
       <div class="mt-7 flex flex-wrap gap-3">
         <FavoriteButton item={{ id: item.id, type: collection, title: item.title, cover_url: item.cover_url, provider: item.provider }} />

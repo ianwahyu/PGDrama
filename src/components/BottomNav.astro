@@ -1,19 +1,19 @@
 ---
 const links = [
-  { href: "/", label: "Home", icon: "⌂" },
-  { href: "/dramas", label: "Drama", icon: "▶" },
-  { href: "/favorites", label: "Favorit", icon: "♡" },
-  { href: "/history", label: "History", icon: "◷" }
+  { href: "/", label: "Home", icon: "H" },
+  { href: "/dramas", label: "Drama", icon: "P" },
+  { href: "/favorites", label: "Favorit", icon: "F" },
+  { href: "/history", label: "History", icon: "R" }
 ];
 ---
 
-<nav class="fixed inset-x-0 bottom-0 z-50 border-t border-content-50/10 bg-base-950/88 px-3 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] pt-2 backdrop-blur-2xl md:hidden">
-  <div class="mx-auto grid max-w-md grid-cols-4 gap-1">
+<nav class="fixed inset-x-0 bottom-0 z-50 border-t-2 border-content-50 bg-base-900 px-3 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] pt-2 md:hidden">
+  <div class="mx-auto grid max-w-md grid-cols-4 gap-2">
     {
       links.map((link) => (
-        <a class="flex min-h-12 flex-col items-center justify-center rounded-2xl text-xs font-semibold text-content-100/70 transition hover:bg-content-50/10 hover:text-content-50" href={link.href}>
-          <span class="text-lg leading-none">{link.icon}</span>
-          <span>{link.label}</span>
+        <a class="flex min-h-12 min-w-0 flex-col items-center justify-center border-2 border-content-50 bg-base-950 px-1 text-[0.68rem] font-black text-content-50 shadow-[3px_3px_0_var(--panel-shadow)] transition hover:-translate-y-0.5 hover:bg-primary-500 hover:text-base-950" href={link.href}>
+          <span class="text-sm leading-none">{link.icon}</span>
+          <span class="max-w-full truncate">{link.label}</span>
         </a>
       ))
     }
