@@ -15,6 +15,38 @@ if (video) {
     });
   }
 
+  // Handle subtitle: convert SRT to VTT if needed, inject as object URL
+  const track = video.querySelector<HTMLTrackElement>("track");
+  if (track) {
+    const subtitleUrl = track.getAttribute("src") || "";
+    if (subtitleUrl && (subtitleUrl.endsWith(".srt") || !subtitleUrl.endsWith(".vtt"))) {
+      fetch(subtitleUrl)
+        .then((res) => res.text())
+        .then((srt) => {
+          // SRT → VTT conversion
+          const vtt = "WEBVTT\n\n" + srt
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2") // comma to dot for timestamp
+            .trim();
+          const blob = new Blob([vtt], { type: "text/vtt" });
+          const objectUrl = URL.createObjectURL(blob);
+          track.setAttribute("src", objectUrl);
+          track.track.mode = "showing";
+        })
+        .catch(() => {
+          // Subtitle fetch failed, silently ignore
+        });
+    } else if (subtitleUrl.endsWith(".vtt")) {
+      // VTT native — just activate it
+      video.addEventListener("loadedmetadata", () => {
+        if (video.textTracks.length > 0) {
+          video.textTracks[0].mode = "showing";
+        }
+      });
+    }
+  }
+
   const latest = getLatestHistoryFor(String(content.id), String(content.type));
   if (latest?.episode_id === String(content.episode_id) && latest.progress_seconds > 15) {
     video.currentTime = latest.progress_seconds;

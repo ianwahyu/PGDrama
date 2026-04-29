@@ -1,5 +1,5 @@
 ---
-const { src, title, poster, content, nextEpisodeUrl } = Astro.props;
+const { src, title, poster, content, nextEpisodeUrl, subtitle } = Astro.props;
 ---
 
 <section class="soft-panel overflow-hidden rounded-[1.6rem] relative group">
@@ -15,7 +15,9 @@ const { src, title, poster, content, nextEpisodeUrl } = Astro.props;
           playsinline
           preload="metadata"
           data-content={JSON.stringify(content)}
-        />
+        >
+          {subtitle && <track kind="subtitles" src={subtitle} label="Indonesia" srclang="id" default />}
+        </video>
       ) : (
         <div class="grid h-full place-items-center p-6 text-center text-content-100/65">
           Video belum tersedia untuk plan/API saat ini.

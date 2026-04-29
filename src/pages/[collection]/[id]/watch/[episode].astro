@@ -31,6 +31,7 @@ const nextEpisodeUrl = nextEpisode ? `/${collection}/${id}/watch/${nextEpisode.i
   <a class="mb-5 inline-flex rounded-full bg-content-50/8 px-4 py-2 text-sm font-bold text-content-100/70 hover:bg-content-50/15" href={`/${collection}/${id}`}>← Kembali ke detail</a>
   <VideoFrame
     src={videoSrc}
+    subtitle={episode?.subtitle_url}
     poster={item.cover_url}
     title={`${item.title} - Episode ${episode?.index ?? episodeIndex}`}
     nextEpisodeUrl={nextEpisodeUrl}
