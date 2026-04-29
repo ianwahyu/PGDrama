@@ -1,0 +1,31 @@
+---
+import { BACA_CATEGORIES, CONTENT_TYPES } from "@lib/content";
+
+const actions = [
+  { href: "/history", label: "Lanjut", accent: "bg-primary-500" },
+  { href: "/favorites", label: "Favorit", accent: "bg-pink-500" },
+  ...CONTENT_TYPES.filter((item) => ["dramas", "anime", "drakor"].includes(item.type)).map((item) => ({
+    href: item.href,
+    label: item.label,
+    accent: item.accent
+  })),
+  { href: BACA_CATEGORIES[0].href, label: "Baca", accent: "bg-yellow-500" },
+  { href: "/search", label: "Search", accent: "bg-[var(--cyan-400)]" }
+];
+---
+
+<section class="my-6">
+  <div class="mb-3 flex items-center justify-between gap-3">
+    <h2 class="brutal-sticker bg-yellow-500 px-3 py-1 text-lg font-black">Akses Cepat</h2>
+  </div>
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+    {
+      actions.map((action) => (
+        <a class="brutal-card p-3" href={action.href}>
+          <span class:list={["mb-3 block size-4 border-2 border-content-50", action.accent]} />
+          <span class="text-sm font-black">{action.label}</span>
+        </a>
+      ))
+    }
+  </div>
+</section>

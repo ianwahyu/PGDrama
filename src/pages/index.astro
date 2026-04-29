@@ -2,6 +2,8 @@
 import AppShell from "@components/AppShell.astro";
 import ContentRail from "@components/ContentRail.astro";
 import Header from "@components/Header.astro";
+import PersonalRail from "@components/PersonalRail.astro";
+import QuickActions from "@components/QuickActions.astro";
 import SearchBar from "@components/SearchBar.astro";
 import { BACA_CATEGORIES, CONTENT_TYPES } from "@lib/content";
 import { getPopularDramas, getTrendingDramas } from "@lib/splay";
@@ -16,6 +18,10 @@ try {
   popular = { items: [] };
   trending = { items: [] };
 }
+
+const recommendationItems = [...trending.items, ...popular.items]
+  .filter((item, index, all) => all.findIndex((entry) => `${entry.type}:${entry.id}` === `${item.type}:${item.id}`) === index)
+  .map(({ id, type, title, cover_url, provider, language }) => ({ id, type, title, cover_url, provider, language }));
 ---
 
 <AppShell title="PGDrama - SPlay ringan">
@@ -23,6 +29,50 @@ try {
     title="Nonton ringan, katalog cepat, nyaman di mobile."
     subtitle="Jelajahi drama pendek, anime, movie, drakor, dan manga dari SPlay dalam tampilan soft-modern yang hemat resource."
   />
+
+  <QuickActions />
+
+  <PersonalRail
+    type="continue"
+    title="Lanjut Nonton"
+    limit={6}
+    emptyTitle="Belum ada tontonan"
+    emptyMessage="Mulai satu episode, nanti progress kamu muncul di sini."
+    ctaHref="/dramas"
+    ctaLabel="Cari drama"
+  />
+
+  <PersonalRail
+    type="recommendations"
+    title="Rekomendasi Buat Kamu"
+    items={recommendationItems}
+    limit={8}
+    emptyTitle="Rekomendasi belum siap"
+    emptyMessage="Kalau API trending belum tersedia, buka katalog untuk mulai eksplor."
+    ctaHref="/dramas"
+    ctaLabel="Buka katalog"
+  />
+
+  <div class="grid gap-6 lg:grid-cols-2">
+    <PersonalRail
+      type="favorites"
+      title="Favorit Kamu"
+      limit={6}
+      emptyTitle="Belum ada favorit"
+      emptyMessage="Simpan konten dari halaman detail supaya cepat balik lagi."
+      ctaHref="/favorites"
+      ctaLabel="Lihat favorit"
+    />
+    <PersonalRail
+      type="recent"
+      title="Baru Dilihat"
+      limit={6}
+      emptyTitle="Belum ada riwayat"
+      emptyMessage="Riwayat akan muncul setelah kamu menonton episode."
+      ctaHref="/history"
+      ctaLabel="Buka history"
+    />
+  </div>
 
   {trending.items.length > 0 && (
     <section class="mb-8 w-full overflow-hidden bg-base-900 poster-shadow sm:mb-10">

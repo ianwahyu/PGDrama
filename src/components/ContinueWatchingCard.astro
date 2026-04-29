@@ -1,0 +1,17 @@
+---
+const { templateId = "continue-watching-card-template" } = Astro.props as { templateId?: string };
+---
+
+<template id={templateId}>
+  <a class="brutal-card flex w-72 shrink-0 snap-start gap-3 p-3 sm:w-80" data-card>
+    <img class="h-28 w-20 shrink-0 border-2 border-content-50 bg-base-800 object-cover" data-cover alt="" loading="lazy" />
+    <div class="min-w-0 flex-1">
+      <p class="line-clamp-2 text-sm font-black" data-title></p>
+      <p class="mt-1 text-xs font-bold text-content-100" data-meta></p>
+      <div class="mt-3 h-3 overflow-hidden border-2 border-content-50 bg-base-950">
+        <span class="block h-full bg-pink-500" data-progress-bar></span>
+      </div>
+      <p class="mt-2 text-xs font-black uppercase" data-extra></p>
+    </div>
+  </a>
+</template>

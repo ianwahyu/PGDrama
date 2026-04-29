@@ -1,0 +1,207 @@
+---
+import ContinueWatchingCard from "./ContinueWatchingCard.astro";
+import type { NormalizedItem } from "@lib/types";
+
+type RailType = "continue" | "favorites" | "recent" | "recommendations";
+
+const {
+  type,
+  title,
+  items = [],
+  limit = 8,
+  emptyTitle = "Belum ada data",
+  emptyMessage = "Mulai nonton atau simpan favorit untuk mengisi bagian ini.",
+  ctaHref = "/dramas",
+  ctaLabel = "Buka katalog"
+} = Astro.props as {
+  type: RailType;
+  title: string;
+  items?: Array<Pick<NormalizedItem, "id" | "type" | "title" | "cover_url" | "provider" | "language">>;
+  limit?: number;
+  emptyTitle?: string;
+  emptyMessage?: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+};
+
+const templateId = `personal-${type}-card-template`;
+---
+
+<section
+  class="my-8"
+  data-personal-rail
+  data-rail-type={type}
+  data-template-id={templateId}
+  data-limit={limit}
+  data-candidates={JSON.stringify(items)}
+>
+  <div class="mb-4 flex items-end justify-between gap-3">
+    <h2 class="brutal-sticker max-w-[70%] bg-primary-500 px-3 py-1 text-lg font-black sm:text-xl">{title}</h2>
+    <a class="brutal-button-secondary px-3 py-2 text-xs" href={ctaHref}>{ctaLabel}</a>
+  </div>
+
+  <div class="-mx-3 hidden snap-x gap-4 overflow-x-auto px-3 pb-3 sm:-mx-4 sm:px-4" data-rail-items></div>
+
+  <div class="soft-panel p-5" data-rail-empty>
+    <p class="text-lg font-black">{emptyTitle}</p>
+    <p class="mt-2 text-sm font-bold text-content-100">{emptyMessage}</p>
+    <a class="brutal-button mt-4 inline-flex px-4 py-2 text-sm" href={ctaHref}>{ctaLabel}</a>
+  </div>
+
+  <ContinueWatchingCard templateId={templateId} />
+</section>
+
+<script>
+  import {
+    getContinueWatching,
+    getFavorites,
+    getLocalRecommendationHints,
+    getRecentContent
+  } from "../lib/localData";
+
+  type RailItem = {
+    id: string;
+    type: string;
+    title: string;
+    cover_url?: string | null;
+    href: string;
+    meta: string;
+    extra: string;
+    progressPercent: number;
+    provider?: string | null;
+  };
+
+  const rails = document.querySelectorAll<HTMLElement>("[data-personal-rail]");
+
+  rails.forEach((rail) => {
+    const type = rail.dataset.railType;
+    const limit = Number(rail.dataset.limit || 8);
+    const itemsRoot = rail.querySelector<HTMLElement>("[data-rail-items]");
+    const empty = rail.querySelector<HTMLElement>("[data-rail-empty]");
+    const template = document.getElementById(rail.dataset.templateId || "") as HTMLTemplateElement | null;
+    if (!itemsRoot || !empty || !template) return;
+
+    const items = itemsForRail(type, limit, safeJson(rail.dataset.candidates, []));
+    if (!items.length) {
+      empty.classList.remove("hidden");
+      itemsRoot.classList.add("hidden");
+      return;
+    }
+
+    empty.classList.add("hidden");
+    itemsRoot.classList.remove("hidden");
+    itemsRoot.innerHTML = "";
+
+    for (const item of items) {
+      const fragment = template.content.cloneNode(true) as DocumentFragment;
+      const card = fragment.querySelector<HTMLAnchorElement>("[data-card]");
+      const cover = fragment.querySelector<HTMLImageElement>("[data-cover]");
+      const title = fragment.querySelector<HTMLElement>("[data-title]");
+      const meta = fragment.querySelector<HTMLElement>("[data-meta]");
+      const extra = fragment.querySelector<HTMLElement>("[data-extra]");
+      const progress = fragment.querySelector<HTMLElement>("[data-progress-bar]");
+
+      if (card) card.href = item.href;
+      if (cover) {
+        cover.src = item.cover_url || "";
+        cover.alt = item.title;
+      }
+      if (title) title.textContent = item.title;
+      if (meta) meta.textContent = item.meta;
+      if (extra) extra.textContent = item.extra;
+      if (progress) progress.style.width = `${item.progressPercent}%`;
+
+      itemsRoot.append(fragment);
+    }
+  });
+
+  function itemsForRail(type: string | undefined, limit: number, candidates: any[]): RailItem[] {
+    if (type === "continue") {
+      return getContinueWatching(limit).map((item) => ({
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        cover_url: item.cover_url,
+        href: item.href,
+        meta: `Episode ${item.latest.episode_index} - ${item.progressPercent}%`,
+        extra: `${item.count} episode ditonton`,
+        progressPercent: item.progressPercent
+      }));
+    }
+
+    if (type === "favorites") {
+      return getFavorites().slice(0, limit).map((item) => ({
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        cover_url: item.cover_url,
+        href: detailHrefFor(item.type, item.id),
+        meta: item.provider || item.type,
+        extra: "Favorit tersimpan",
+        progressPercent: 100,
+        provider: item.provider
+      }));
+    }
+
+    if (type === "recent") {
+      return getRecentContent(limit).map((item) => ({
+        id: item.id,
+        type: item.type,
+        title: item.title,
+        cover_url: item.cover_url,
+        href: item.detailHref,
+        meta: `Terakhir Episode ${item.latest.episode_index}`,
+        extra: `${item.count} episode ditonton`,
+        progressPercent: item.progressPercent
+      }));
+    }
+
+    return recommendationItems(candidates, limit);
+  }
+
+  function recommendationItems(candidates: any[], limit: number): RailItem[] {
+    const hints = getLocalRecommendationHints();
+    const watched = new Set(hints.contentKeys);
+    const typed = new Set(hints.types);
+    const providers = new Set(hints.providers);
+
+    return candidates
+      .filter((item, index, all) => all.findIndex((entry) => `${entry.type}:${entry.id}` === `${item.type}:${item.id}`) === index)
+      .map((item, index) => ({
+        item,
+        score:
+          (typed.has(item.type) ? 6 : 0) +
+          (item.provider && providers.has(item.provider) ? 4 : 0) +
+          (watched.has(`${item.type}:${item.id}`) ? -10 : 0) -
+          index * 0.01
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(({ item }) => ({
+        id: String(item.id),
+        type: String(item.type),
+        title: String(item.title),
+        cover_url: item.cover_url,
+        href: detailHrefFor(String(item.type), String(item.id)),
+        meta: item.provider || item.language || item.type,
+        extra: hints.types.length ? "Rekomendasi lokal" : "Pilihan populer",
+        progressPercent: 100,
+        provider: item.provider
+      }));
+  }
+
+  function detailHrefFor(type: string, id: string) {
+    if (type.startsWith("baca-")) {
+      return `/baca/${type.replace("baca-", "")}/${id}`;
+    }
+    return `/${type}/${id}`;
+  }
+
+  function safeJson<T>(value: string | undefined, fallback: T): T {
+    try {
+      return value ? JSON.parse(value) as T : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+</script>

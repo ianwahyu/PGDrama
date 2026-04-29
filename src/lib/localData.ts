@@ -19,6 +19,19 @@ export type HistoryEntry = {
   watched_at: string;
 };
 
+export type GroupedHistoryEntry = {
+  id: string;
+  type: string;
+  title: string;
+  cover_url?: string | null;
+  latest: HistoryEntry;
+  episodeIndexes: number[];
+  count: number;
+  href: string;
+  detailHref: string;
+  progressPercent: number;
+};
+
 const FAVORITES_KEY = "pgdrama:favorites";
 const HISTORY_KEY = "pgdrama:watchHistory";
 
@@ -79,4 +92,94 @@ export function getLatestHistoryFor(id: string, type: string) {
 
 export function clearHistory() {
   safeWrite(HISTORY_KEY, []);
+}
+
+export function getGroupedHistory(): GroupedHistoryEntry[] {
+  const groups = new Map<string, { latest: HistoryEntry; episodeIndexes: Set<number> }>();
+
+  for (const item of getHistory()) {
+    const key = `${item.type}:${item.id}`;
+    const existing = groups.get(key);
+    const watchedAt = Date.parse(item.watched_at) || 0;
+    const existingWatchedAt = existing ? Date.parse(existing.latest.watched_at) || 0 : 0;
+
+    if (!existing) {
+      groups.set(key, { latest: item, episodeIndexes: new Set([item.episode_index]) });
+      continue;
+    }
+
+    existing.episodeIndexes.add(item.episode_index);
+    if (watchedAt > existingWatchedAt) {
+      existing.latest = item;
+    }
+  }
+
+  return Array.from(groups.values())
+    .map(({ latest, episodeIndexes }) => {
+      const progressPercent = latest.duration_seconds
+        ? Math.min(100, Math.round((latest.progress_seconds / latest.duration_seconds) * 100))
+        : 0;
+
+      return {
+        id: latest.id,
+        type: latest.type,
+        title: latest.title,
+        cover_url: latest.cover_url,
+        latest,
+        episodeIndexes: Array.from(episodeIndexes).sort((a, b) => a - b),
+        count: episodeIndexes.size,
+        href: `/${latest.type}/${latest.id}/watch/${latest.episode_index}`,
+        detailHref: detailHrefFor(latest.type, latest.id),
+        progressPercent
+      };
+    })
+    .sort((a, b) => (Date.parse(b.latest.watched_at) || 0) - (Date.parse(a.latest.watched_at) || 0));
+}
+
+export function getRecentContent(limit = 8) {
+  return getGroupedHistory().slice(0, limit);
+}
+
+export function getContinueWatching(limit = 4) {
+  const grouped = getGroupedHistory();
+  const inProgress = grouped.filter((item) => item.latest.duration_seconds === 0 || item.progressPercent < 95);
+  return (inProgress.length ? inProgress : grouped).slice(0, limit);
+}
+
+export function getLocalRecommendationHints() {
+  const typeCounts = new Map<string, number>();
+  const providerCounts = new Map<string, number>();
+  const contentKeys = new Set<string>();
+
+  for (const item of getGroupedHistory()) {
+    contentKeys.add(`${item.type}:${item.id}`);
+    typeCounts.set(item.type, (typeCounts.get(item.type) ?? 0) + 1);
+  }
+
+  for (const item of getFavorites()) {
+    contentKeys.add(`${item.type}:${item.id}`);
+    typeCounts.set(item.type, (typeCounts.get(item.type) ?? 0) + 1);
+    if (item.provider) {
+      providerCounts.set(item.provider, (providerCounts.get(item.provider) ?? 0) + 1);
+    }
+  }
+
+  return {
+    types: sortCounts(typeCounts),
+    providers: sortCounts(providerCounts),
+    contentKeys: Array.from(contentKeys)
+  };
+}
+
+function detailHrefFor(type: string, id: string) {
+  if (type.startsWith("baca-")) {
+    return `/baca/${type.replace("baca-", "")}/${id}`;
+  }
+  return `/${type}/${id}`;
+}
+
+function sortCounts(counts: Map<string, number>) {
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([value]) => value);
 }
