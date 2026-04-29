@@ -139,6 +139,18 @@ function setupCustomControls(video: HTMLVideoElement) {
   const playButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="play"]');
   const playIcon = document.querySelector<HTMLElement>("[data-play-icon]");
   const fullscreenButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="fullscreen"]');
+  let hideTimer: number | undefined;
+
+  const showControls = (persist = false) => {
+    if (!shell) return;
+    shell.dataset.controlsVisible = "true";
+    if (hideTimer) window.clearTimeout(hideTimer);
+    if (!persist && !video.paused) {
+      hideTimer = window.setTimeout(() => {
+        shell.dataset.controlsVisible = "false";
+      }, 2600);
+    }
+  };
 
   const togglePlay = () => {
     if (video.paused) {
@@ -149,6 +161,9 @@ function setupCustomControls(video: HTMLVideoElement) {
   };
 
   const syncPlay = () => {
+    if (shell) {
+      shell.dataset.playing = video.paused ? "false" : "true";
+    }
     const label = video.paused ? "Play" : "Pause";
     playButtons.forEach((button) => {
       if (!button.querySelector("[data-play-icon]")) {
@@ -158,6 +173,7 @@ function setupCustomControls(video: HTMLVideoElement) {
     if (playIcon) {
       playIcon.textContent = video.paused ? ">" : "II";
     }
+    showControls(video.paused);
   };
 
   const syncTime = () => {
@@ -195,8 +211,19 @@ function setupCustomControls(video: HTMLVideoElement) {
     video.playbackRate = Number(speed.value) || 1;
   });
   video.addEventListener("click", togglePlay);
+  shell?.addEventListener("mousemove", () => showControls());
+  shell?.addEventListener("touchstart", () => showControls(), { passive: true });
+  shell?.addEventListener("focusin", () => showControls(true));
+  shell?.addEventListener("mouseleave", () => {
+    if (!video.paused) {
+      shell.dataset.controlsVisible = "false";
+    }
+  });
+  document.querySelector("[data-custom-controls]")?.addEventListener("pointerenter", () => showControls(true));
+  document.querySelector("[data-custom-controls]")?.addEventListener("pointerleave", () => showControls());
   video.addEventListener("play", syncPlay);
   video.addEventListener("pause", syncPlay);
+  video.addEventListener("ended", () => showControls(true));
   video.addEventListener("loadedmetadata", syncTime);
   video.addEventListener("timeupdate", syncTime);
   document.addEventListener("fullscreenchange", () => {

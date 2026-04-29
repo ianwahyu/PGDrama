@@ -110,6 +110,28 @@ img, video {
   width: 100%;
 }
 
+[data-player-shell] .player-chrome,
+[data-player-shell] [data-player-action="play"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+[data-player-shell][data-controls-visible="false"] .player-chrome,
+[data-player-shell][data-controls-visible="false"][data-playing="true"] [data-player-action="play"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-player-shell][data-controls-visible="false"] {
+  cursor: none;
+}
+
+[data-player-shell]:focus-within .player-chrome,
+[data-player-shell]:hover .player-chrome {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .soft-panel {
   border: var(--brutal-border);
   border-radius: var(--brutal-radius);
