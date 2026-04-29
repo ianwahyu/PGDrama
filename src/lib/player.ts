@@ -16,6 +16,7 @@ if (video) {
   }
 
   const subtitleApi = setupSubtitles(video);
+  setupCustomControls(video);
   setupPlaybackShortcuts(video, subtitleApi);
   setupMediaSession(video);
   setupAutoNext(video);
@@ -129,6 +130,84 @@ function setupSubtitles(video: HTMLVideoElement) {
   };
 }
 
+function setupCustomControls(video: HTMLVideoElement) {
+  const shell = video.closest<HTMLElement>("[data-player-shell]");
+  const seek = document.querySelector<HTMLInputElement>("[data-player-seek]");
+  const volume = document.querySelector<HTMLInputElement>("[data-player-volume]");
+  const speed = document.querySelector<HTMLSelectElement>("[data-player-speed]");
+  const time = document.querySelector<HTMLElement>("[data-player-time]");
+  const playButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="play"]');
+  const playIcon = document.querySelector<HTMLElement>("[data-play-icon]");
+  const fullscreenButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="fullscreen"]');
+
+  const togglePlay = () => {
+    if (video.paused) {
+      video.play().catch(() => undefined);
+    } else {
+      video.pause();
+    }
+  };
+
+  const syncPlay = () => {
+    const label = video.paused ? "Play" : "Pause";
+    playButtons.forEach((button) => {
+      if (!button.querySelector("[data-play-icon]")) {
+        button.textContent = label;
+      }
+    });
+    if (playIcon) {
+      playIcon.textContent = video.paused ? ">" : "II";
+    }
+  };
+
+  const syncTime = () => {
+    const duration = Number.isFinite(video.duration) ? video.duration : 0;
+    const current = Number.isFinite(video.currentTime) ? video.currentTime : 0;
+    if (seek) {
+      seek.value = duration ? String((current / duration) * 100) : "0";
+    }
+    if (time) {
+      time.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!shell) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => undefined);
+    } else {
+      shell.requestFullscreen().catch(() => undefined);
+    }
+  };
+
+  playButtons.forEach((button) => button.addEventListener("click", togglePlay));
+  fullscreenButtons.forEach((button) => button.addEventListener("click", toggleFullscreen));
+  seek?.addEventListener("input", () => {
+    const duration = Number.isFinite(video.duration) ? video.duration : 0;
+    if (!duration || !seek.value) return;
+    video.currentTime = (Number(seek.value) / 100) * duration;
+  });
+  volume?.addEventListener("input", () => {
+    video.volume = Number(volume.value);
+    video.muted = video.volume === 0;
+  });
+  speed?.addEventListener("change", () => {
+    video.playbackRate = Number(speed.value) || 1;
+  });
+  video.addEventListener("click", togglePlay);
+  video.addEventListener("play", syncPlay);
+  video.addEventListener("pause", syncPlay);
+  video.addEventListener("loadedmetadata", syncTime);
+  video.addEventListener("timeupdate", syncTime);
+  document.addEventListener("fullscreenchange", () => {
+    fullscreenButtons.forEach((button) => {
+      button.textContent = document.fullscreenElement ? "Exit" : "Full";
+    });
+  });
+  syncPlay();
+  syncTime();
+}
+
 function setupPlaybackShortcuts(video: HTMLVideoElement, subtitleApi: { toggle: () => void }) {
   const previousUrl = video.dataset.previousUrl || "";
   const nextUrl = video.dataset.nextUrl || "";
@@ -140,18 +219,25 @@ function setupPlaybackShortcuts(video: HTMLVideoElement, subtitleApi: { toggle: 
     video.currentTime = Math.max(0, Math.min(video.duration, video.currentTime + seconds));
   };
 
-  document.querySelector('[data-player-action="seek-back"]')?.addEventListener("click", () => seek(-10));
-  document.querySelector('[data-player-action="seek-forward"]')?.addEventListener("click", () => seek(10));
-  document.querySelector('[data-player-action="subtitle"]')?.addEventListener("click", () => subtitleApi.toggle());
-  document.querySelector('[data-player-action="previous"]')?.addEventListener("click", () => goTo(previousUrl));
-  document.querySelector('[data-player-action="next"]')?.addEventListener("click", () => goTo(nextUrl));
+  document.querySelectorAll('[data-player-action="seek-back"]').forEach((button) => button.addEventListener("click", () => seek(-10)));
+  document.querySelectorAll('[data-player-action="seek-forward"]').forEach((button) => button.addEventListener("click", () => seek(10)));
+  document.querySelectorAll('[data-player-action="subtitle"]').forEach((button) => button.addEventListener("click", () => subtitleApi.toggle()));
+  document.querySelectorAll('[data-player-action="previous"]').forEach((button) => button.addEventListener("click", () => goTo(previousUrl)));
+  document.querySelectorAll('[data-player-action="next"]').forEach((button) => button.addEventListener("click", () => goTo(nextUrl)));
 
   document.addEventListener("keydown", (event) => {
     const target = event.target as HTMLElement | null;
     if (target?.matches("input, select, textarea, button")) return;
 
     const key = event.key.toLowerCase();
-    if (key === "arrowleft" || key === "j") {
+    if (key === " " || key === "k") {
+      event.preventDefault();
+      if (video.paused) {
+        video.play().catch(() => undefined);
+      } else {
+        video.pause();
+      }
+    } else if (key === "arrowleft" || key === "j") {
       event.preventDefault();
       seek(-10);
     } else if (key === "arrowright" || key === "l") {
@@ -166,6 +252,9 @@ function setupPlaybackShortcuts(video: HTMLVideoElement, subtitleApi: { toggle: 
     } else if (key === "p") {
       event.preventDefault();
       goTo(previousUrl);
+    } else if (key === "f") {
+      event.preventDefault();
+      document.querySelector<HTMLButtonElement>('[data-player-action="fullscreen"]')?.click();
     }
   });
 }
@@ -255,4 +344,16 @@ function toVtt(subtitle: string) {
   const normalized = subtitle.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
   if (normalized.startsWith("WEBVTT")) return normalized;
   return `WEBVTT\n\n${normalized.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2")}`;
+}
+
+function formatTime(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0:00";
+  const rounded = Math.floor(seconds);
+  const hours = Math.floor(rounded / 3600);
+  const minutes = Math.floor((rounded % 3600) / 60);
+  const rest = rounded % 60;
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+  }
+  return `${minutes}:${String(rest).padStart(2, "0")}`;
 }

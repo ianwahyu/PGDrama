@@ -98,6 +98,18 @@ img, video {
   display: block;
 }
 
+[data-player-shell]:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  background: #000000;
+}
+
+[data-player-shell]:fullscreen video {
+  height: 100%;
+  width: 100%;
+}
+
 .soft-panel {
   border: var(--brutal-border);
   border-radius: var(--brutal-radius);
