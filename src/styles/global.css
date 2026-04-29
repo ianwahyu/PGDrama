@@ -16,44 +16,40 @@
 
 :root {
   color-scheme: light;
-  --base-950: #f0f8ff;
-  --base-900: #e0f2fe;
-  --base-800: #bae6fd;
-  --content-50: #082f49;
-  --content-100: #0c4a6e;
-  --primary-300: #38bdf8;
-  --primary-500: #0284c7;
-  --yellow-500: #eab308;
-  --pink-300: #f472b6;
-  --pink-500: #db2777;
+  --base-950: #f9f9f9;
+  --base-900: #ffffff;
+  --base-800: #f1f2f3;
+  --content-50: #111319;
+  --content-100: #333333;
+  --primary-300: #33e676;
+  --primary-500: #00e054;
+  --yellow-500: #e2b553;
+  --pink-300: #e2b553;
+  --pink-500: #d4af37;
   
-  --bg-gradient: radial-gradient(circle at top left, rgba(56, 189, 248, 0.15), transparent 32rem),
-                 radial-gradient(circle at 80% 5%, rgba(244, 114, 182, 0.1), transparent 28rem),
-                 linear-gradient(180deg, var(--base-900) 0%, var(--base-950) 44%, #ffffff 100%);
-  --panel-bg: rgba(255, 255, 255, 0.5);
-  --panel-border: rgba(8, 47, 73, 0.05);
-  --panel-shadow: rgba(8, 47, 73, 0.08);
+  --bg-gradient: none;
+  --panel-bg: rgba(255, 255, 255, 0.8);
+  --panel-border: rgba(0, 0, 0, 0.05);
+  --panel-shadow: rgba(0, 0, 0, 0.05);
 }
 
 .dark {
   color-scheme: dark;
-  --base-950: #081526;
-  --base-900: #0d213b;
-  --base-800: #143054;
-  --content-50: #f0f8ff;
-  --content-100: #dbeafe;
-  --primary-300: #7dd3fc;
-  --primary-500: #38bdf8;
-  --yellow-500: #fde047;
-  --pink-300: #fbcfe8;
-  --pink-500: #f472b6;
+  --base-950: #111319;
+  --base-900: #1a1c20;
+  --base-800: #23252b;
+  --content-50: #ffffff;
+  --content-100: #a9a9a9;
+  --primary-300: #33e676;
+  --primary-500: #00e054;
+  --yellow-500: #e2b553;
+  --pink-300: #e2b553;
+  --pink-500: #d4af37;
   
-  --bg-gradient: radial-gradient(circle at top left, rgba(125, 211, 252, 0.28), transparent 32rem),
-                 radial-gradient(circle at 80% 5%, rgba(251, 207, 232, 0.22), transparent 28rem),
-                 linear-gradient(180deg, var(--base-900) 0%, var(--base-950) 44%, #040a13 100%);
-  --panel-bg: rgba(240, 248, 255, 0.05);
-  --panel-border: rgba(240, 248, 255, 0.08);
-  --panel-shadow: rgba(0, 0, 0, 0.25);
+  --bg-gradient: none;
+  --panel-bg: rgba(26, 28, 32, 0.6);
+  --panel-border: rgba(255, 255, 255, 0.05);
+  --panel-shadow: rgba(0, 0, 0, 0.4);
 }
 
 body {

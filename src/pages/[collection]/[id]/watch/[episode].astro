@@ -24,6 +24,7 @@ const videoSrc = episode?.video_url || Object.values(episode?.qualities ?? {})[0
 const currentIndex = episodes.findIndex(e => String(e.index) === episodeIndex || e.id === episodeIndex);
 const nextEpisode = currentIndex !== -1 && currentIndex < episodes.length - 1 ? episodes[currentIndex + 1] : null;
 const prevEpisode = currentIndex > 0 ? episodes[currentIndex - 1] : null;
+const nextEpisodeUrl = nextEpisode ? `/${collection}/${id}/watch/${nextEpisode.index}` : null;
 ---
 
 <AppShell title={`${item.title} Episode ${episodeIndex} - PGDrama`} compact>
@@ -32,6 +33,7 @@ const prevEpisode = currentIndex > 0 ? episodes[currentIndex - 1] : null;
     src={videoSrc}
     poster={item.cover_url}
     title={`${item.title} - Episode ${episode?.index ?? episodeIndex}`}
+    nextEpisodeUrl={nextEpisodeUrl}
     content={{
       id: item.id,
       type: collection,
@@ -44,7 +46,7 @@ const prevEpisode = currentIndex > 0 ? episodes[currentIndex - 1] : null;
 
   <div class="mt-6 flex items-center justify-between gap-4">
     {prevEpisode ? <a class="rounded-full bg-content-50/10 px-5 py-3 text-sm font-bold text-content-50 hover:bg-content-50/20" href={`/${collection}/${id}/watch/${prevEpisode.index}`}>← Episode Sebelumnya</a> : <div></div>}
-    {nextEpisode && <a class="rounded-full bg-pink-500 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-pink-300 transition" href={`/${collection}/${id}/watch/${nextEpisode.index}`}>Episode Selanjutnya →</a>}
+    {nextEpisode && <a class="rounded-full bg-primary-500 px-5 py-3 text-sm font-bold text-base-950 shadow-lg hover:bg-primary-300 transition" href={nextEpisodeUrl}>Episode Selanjutnya →</a>}
   </div>
 
   {episodes.length > 0 && (

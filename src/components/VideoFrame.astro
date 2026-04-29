@@ -1,9 +1,9 @@
 ---
-const { src, title, poster, content } = Astro.props;
+const { src, title, poster, content, nextEpisodeUrl } = Astro.props;
 ---
 
-<section class="soft-panel overflow-hidden rounded-[1.6rem]">
-  <div class="aspect-video bg-black">
+<section class="soft-panel overflow-hidden rounded-[1.6rem] relative group">
+  <div class="aspect-video bg-black relative">
     {
       src ? (
         <video
@@ -22,9 +22,14 @@ const { src, title, poster, content } = Astro.props;
         </div>
       )
     }
+    {nextEpisodeUrl && (
+      <a href={nextEpisodeUrl} class="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 text-white px-4 py-2 rounded-full text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-primary-500 hover:text-base-950 flex items-center gap-2 shadow-lg z-10">
+        Next Ep <svg class="size-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </a>
+    )}
   </div>
   <div class="p-4">
-    <p class="text-sm font-bold text-pink-300">Sekarang diputar</p>
+    <p class="text-sm font-bold text-primary-300 uppercase tracking-widest">Sekarang diputar</p>
     <h1 class="mt-1 text-2xl font-black">{title}</h1>
   </div>
 </section>
