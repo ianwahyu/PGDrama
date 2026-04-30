@@ -334,19 +334,19 @@ function setupCustomControls(video: HTMLVideoElement) {
   });
 
   // ── Touch handling for mobile ──
-  // Single tap on video = toggle controls, double tap = seek ±10s
+  // Single tap = toggle controls visibility, double tap = seek ±10s
+  const isTouchDevice = "ontouchstart" in window;
   let tapTimeout: number | undefined;
   let lastTapTime = 0;
   let lastTapX = 0;
 
   video.addEventListener("click", (e) => {
-    // On desktop, simple click = toggle play
-    if (!("ontouchstart" in window)) {
+    // On desktop, click = toggle play
+    if (!isTouchDevice) {
       togglePlay();
       return;
     }
-
-    // On mobile, handle via the touchend logic below
+    // On mobile, prevent default — touch logic handles everything
     e.preventDefault();
   });
 
@@ -359,17 +359,15 @@ function setupCustomControls(video: HTMLVideoElement) {
     const x = touch.clientX;
 
     if (timeDiff < 300 && Math.abs(x - lastTapX) < 50) {
-      // Double tap detected
+      // ── Double tap: seek ──
       if (tapTimeout) window.clearTimeout(tapTimeout);
       const rect = video.getBoundingClientRect();
       const half = rect.left + rect.width / 2;
       if (x < half) {
-        // Double tap left = seek back
         if (Number.isFinite(video.duration)) {
           video.currentTime = Math.max(0, video.currentTime - 10);
         }
       } else {
-        // Double tap right = seek forward
         if (Number.isFinite(video.duration)) {
           video.currentTime = Math.min(video.duration, video.currentTime + 10);
         }
@@ -377,16 +375,17 @@ function setupCustomControls(video: HTMLVideoElement) {
       showControls();
       lastTapTime = 0;
     } else {
-      // Single tap – wait to see if it becomes a double
+      // ── Single tap: toggle controls ──
       lastTapTime = now;
       lastTapX = x;
       if (tapTimeout) window.clearTimeout(tapTimeout);
       tapTimeout = window.setTimeout(() => {
-        // Confirmed single tap: toggle controls visibility
-        if (controlsVisible && !video.paused) {
+        if (controlsVisible) {
+          // Controls are visible → hide them
           setControlsVisible(false);
           if (hideTimer) window.clearTimeout(hideTimer);
         } else {
+          // Controls are hidden → show them with auto-hide timer
           showControls();
         }
       }, 300);
@@ -410,9 +409,12 @@ function setupCustomControls(video: HTMLVideoElement) {
     if (!video.paused) scheduleHide();
   });
 
-  // Prevent controls bar clicks/touches from propagating to video
-  controlsBar?.addEventListener("click", (e) => e.stopPropagation());
-  controlsBar?.addEventListener("touchend", (e) => e.stopPropagation());
+  // Prevent ALL player-chrome overlays from propagating touches/clicks to video
+  shell?.querySelectorAll(".player-chrome, [data-custom-controls]").forEach((el) => {
+    el.addEventListener("click", (e) => e.stopPropagation());
+    el.addEventListener("touchend", (e) => e.stopPropagation());
+    el.addEventListener("touchstart", (e) => e.stopPropagation(), { passive: true });
+  });
 
   video.addEventListener("play", syncPlay);
   video.addEventListener("pause", syncPlay);
