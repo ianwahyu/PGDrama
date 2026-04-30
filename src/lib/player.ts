@@ -137,7 +137,7 @@ function setupCustomControls(video: HTMLVideoElement) {
   const speed = document.querySelector<HTMLSelectElement>("[data-player-speed]");
   const time = document.querySelector<HTMLElement>("[data-player-time]");
   const playButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="play"]');
-  const playIcon = document.querySelector<HTMLElement>("[data-play-icon]");
+  const rotateButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="rotate"]');
   const fullscreenButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="fullscreen"]');
   let hideTimer: number | undefined;
 
@@ -164,15 +164,14 @@ function setupCustomControls(video: HTMLVideoElement) {
     if (shell) {
       shell.dataset.playing = video.paused ? "false" : "true";
     }
-    const label = video.paused ? "Play" : "Pause";
-    playButtons.forEach((button) => {
-      if (!button.querySelector("[data-play-icon]")) {
-        button.textContent = label;
-      }
+    
+    document.querySelectorAll("[data-icon-play]").forEach((el) => {
+      el.classList.toggle("hidden", !video.paused);
     });
-    if (playIcon) {
-      playIcon.textContent = video.paused ? ">" : "II";
-    }
+    document.querySelectorAll("[data-icon-pause]").forEach((el) => {
+      el.classList.toggle("hidden", video.paused);
+    });
+
     showControls(video.paused);
   };
 
@@ -187,16 +186,65 @@ function setupCustomControls(video: HTMLVideoElement) {
     }
   };
 
-  const toggleFullscreen = () => {
+  const lockLandscape = () => {
+    const orientation = screen.orientation as ScreenOrientation & {
+      lock?: (orientation: "landscape") => Promise<void>;
+      unlock?: () => void;
+    };
+
+    orientation.lock?.("landscape").catch(() => undefined);
+  };
+
+  const unlockOrientation = () => {
+    const orientation = screen.orientation as ScreenOrientation & {
+      unlock?: () => void;
+    };
+
+    orientation.unlock?.();
+  };
+
+  const enterFullscreen = async () => {
     if (!shell) return;
+
+    try {
+      await shell.requestFullscreen();
+      lockLandscape();
+      return;
+    } catch {
+      const webkitVideo = video as HTMLVideoElement & {
+        webkitEnterFullscreen?: () => void;
+        webkitSupportsFullscreen?: boolean;
+      };
+
+      if (webkitVideo.webkitSupportsFullscreen !== false && webkitVideo.webkitEnterFullscreen) {
+        webkitVideo.webkitEnterFullscreen();
+      }
+    }
+  };
+
+  const exitFullscreen = () => {
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => undefined);
+    }
+    unlockOrientation();
+  };
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      exitFullscreen();
     } else {
-      shell.requestFullscreen().catch(() => undefined);
+      enterFullscreen();
+    }
+  };
+
+  const toggleRotate = () => {
+    if (shell) {
+      shell.classList.toggle("is-rotated");
     }
   };
 
   playButtons.forEach((button) => button.addEventListener("click", togglePlay));
+  rotateButtons.forEach((button) => button.addEventListener("click", toggleRotate));
   fullscreenButtons.forEach((button) => button.addEventListener("click", toggleFullscreen));
   seek?.addEventListener("input", () => {
     const duration = Number.isFinite(video.duration) ? video.duration : 0;
@@ -227,8 +275,17 @@ function setupCustomControls(video: HTMLVideoElement) {
   video.addEventListener("loadedmetadata", syncTime);
   video.addEventListener("timeupdate", syncTime);
   document.addEventListener("fullscreenchange", () => {
-    fullscreenButtons.forEach((button) => {
-      button.textContent = document.fullscreenElement ? "Exit" : "Full";
+    if (document.fullscreenElement) {
+      lockLandscape();
+    } else {
+      unlockOrientation();
+    }
+
+    document.querySelectorAll("[data-icon-full]").forEach((el) => {
+      el.classList.toggle("hidden", !!document.fullscreenElement);
+    });
+    document.querySelectorAll("[data-icon-exit]").forEach((el) => {
+      el.classList.toggle("hidden", !document.fullscreenElement);
     });
   });
   syncPlay();
@@ -315,8 +372,9 @@ function setupAutoNext(video: HTMLVideoElement) {
 
   const syncToggle = () => {
     if (!toggle) return;
-    toggle.textContent = enabled ? "Auto Next On" : "Auto Next Off";
     toggle.classList.toggle("is-primary", enabled);
+    // Since we use an icon now, we don't need text content modification
+    // toggle.textContent = enabled ? "Auto Next On" : "Auto Next Off";
   };
 
   const clearCountdown = () => {
