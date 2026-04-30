@@ -161,7 +161,7 @@ function setupCustomControls(video: HTMLVideoElement) {
       if (!video.paused) {
         setControlsVisible(false);
       }
-    }, 2800);
+    }, 4500);
   };
 
   const showControls = (persist = false) => {
@@ -398,7 +398,7 @@ function setupCustomControls(video: HTMLVideoElement) {
   shell?.addEventListener("mouseleave", () => {
     if (!video.paused) {
       if (hideTimer) window.clearTimeout(hideTimer);
-      hideTimer = window.setTimeout(() => setControlsVisible(false), 800);
+      hideTimer = window.setTimeout(() => setControlsVisible(false), 2000);
     }
   });
 
