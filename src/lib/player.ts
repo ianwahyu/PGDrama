@@ -139,19 +139,40 @@ function setupCustomControls(video: HTMLVideoElement) {
   const playButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="play"]');
   const rotateButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="rotate"]');
   const fullscreenButtons = document.querySelectorAll<HTMLButtonElement>('[data-player-action="fullscreen"]');
-  let hideTimer: number | undefined;
+  const controlsBar = document.querySelector<HTMLElement>("[data-custom-controls]");
 
-  const showControls = (persist = false) => {
+  let hideTimer: number | undefined;
+  let controlsVisible = true;
+
+  // ── Show / Hide helpers ──
+  const setControlsVisible = (visible: boolean) => {
     if (!shell) return;
-    shell.dataset.controlsVisible = "true";
-    if (hideTimer) window.clearTimeout(hideTimer);
-    if (!persist && !video.paused) {
-      hideTimer = window.setTimeout(() => {
-        shell.dataset.controlsVisible = "false";
-      }, 2600);
+    controlsVisible = visible;
+    if (visible) {
+      shell.classList.remove("controls-hidden");
+    } else {
+      shell.classList.add("controls-hidden");
     }
   };
 
+  const scheduleHide = () => {
+    if (hideTimer) window.clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => {
+      if (!video.paused) {
+        setControlsVisible(false);
+      }
+    }, 2800);
+  };
+
+  const showControls = (persist = false) => {
+    setControlsVisible(true);
+    if (hideTimer) window.clearTimeout(hideTimer);
+    if (!persist && !video.paused) {
+      scheduleHide();
+    }
+  };
+
+  // ── Play / Pause ──
   const togglePlay = () => {
     if (video.paused) {
       video.play().catch(() => undefined);
@@ -161,20 +182,21 @@ function setupCustomControls(video: HTMLVideoElement) {
   };
 
   const syncPlay = () => {
-    if (shell) {
-      shell.dataset.playing = video.paused ? "false" : "true";
-    }
-    
     document.querySelectorAll("[data-icon-play]").forEach((el) => {
-      el.classList.toggle("hidden", !video.paused);
+      (el as HTMLElement).style.display = video.paused ? "" : "none";
     });
     document.querySelectorAll("[data-icon-pause]").forEach((el) => {
-      el.classList.toggle("hidden", video.paused);
+      (el as HTMLElement).style.display = video.paused ? "none" : "";
     });
 
-    showControls(video.paused);
+    if (video.paused) {
+      showControls(true);
+    } else {
+      showControls(false);
+    }
   };
 
+  // ── Seek / Time ──
   const syncTime = () => {
     const duration = Number.isFinite(video.duration) ? video.duration : 0;
     const current = Number.isFinite(video.currentTime) ? video.currentTime : 0;
@@ -186,36 +208,16 @@ function setupCustomControls(video: HTMLVideoElement) {
     }
   };
 
-  const lockLandscape = () => {
-    const orientation = screen.orientation as ScreenOrientation & {
-      lock?: (orientation: "landscape") => Promise<void>;
-      unlock?: () => void;
-    };
-
-    orientation.lock?.("landscape").catch(() => undefined);
-  };
-
-  const unlockOrientation = () => {
-    const orientation = screen.orientation as ScreenOrientation & {
-      unlock?: () => void;
-    };
-
-    orientation.unlock?.();
-  };
-
+  // ── Fullscreen ──
   const enterFullscreen = async () => {
     if (!shell) return;
-
     try {
       await shell.requestFullscreen();
-      lockLandscape();
-      return;
     } catch {
       const webkitVideo = video as HTMLVideoElement & {
         webkitEnterFullscreen?: () => void;
         webkitSupportsFullscreen?: boolean;
       };
-
       if (webkitVideo.webkitSupportsFullscreen !== false && webkitVideo.webkitEnterFullscreen) {
         webkitVideo.webkitEnterFullscreen();
       }
@@ -226,7 +228,6 @@ function setupCustomControls(video: HTMLVideoElement) {
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => undefined);
     }
-    unlockOrientation();
   };
 
   const toggleFullscreen = () => {
@@ -237,15 +238,88 @@ function setupCustomControls(video: HTMLVideoElement) {
     }
   };
 
-  const toggleRotate = () => {
-    if (shell) {
-      shell.classList.toggle("is-rotated");
+  // ── Rotate (mobile landscape) ──
+  // Uses Fullscreen + screen.orientation.lock for a proper landscape experience.
+  // Falls back to CSS rotation only as last resort.
+  let isRotated = false;
+
+  const toggleRotate = async () => {
+    if (!shell) return;
+
+    if (isRotated) {
+      // Exit rotated state
+      isRotated = false;
+      shell.classList.remove("is-rotated");
+      document.body.classList.remove("body-player-rotated");
+
+      // Try to unlock orientation
+      try {
+        const orientation = screen.orientation as ScreenOrientation & { unlock?: () => void };
+        orientation.unlock?.();
+      } catch { /* ignore */ }
+
+      // Exit fullscreen if we entered it
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => undefined);
+      }
+    } else {
+      // Enter rotated/landscape state
+      isRotated = true;
+
+      // Strategy 1: Fullscreen + orientation lock (best experience)
+      try {
+        await shell.requestFullscreen();
+        const orientation = screen.orientation as ScreenOrientation & {
+          lock?: (o: string) => Promise<void>;
+        };
+        await orientation.lock?.("landscape");
+        // Fullscreen + landscape lock succeeded, no CSS hack needed
+        return;
+      } catch {
+        // Fullscreen or orientation lock failed, fall through
+      }
+
+      // Strategy 2: CSS rotation fallback for browsers that don't support orientation lock
+      shell.classList.add("is-rotated");
+      document.body.classList.add("body-player-rotated");
     }
   };
 
-  playButtons.forEach((button) => button.addEventListener("click", togglePlay));
-  rotateButtons.forEach((button) => button.addEventListener("click", toggleRotate));
-  fullscreenButtons.forEach((button) => button.addEventListener("click", toggleFullscreen));
+  // Clean up rotated state when exiting fullscreen
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement && isRotated) {
+      isRotated = false;
+      shell?.classList.remove("is-rotated");
+      document.body.classList.remove("body-player-rotated");
+      try {
+        const orientation = screen.orientation as ScreenOrientation & { unlock?: () => void };
+        orientation.unlock?.();
+      } catch { /* ignore */ }
+    }
+
+    // Sync fullscreen icons
+    document.querySelectorAll("[data-icon-full]").forEach((el) => {
+      (el as HTMLElement).style.display = document.fullscreenElement ? "none" : "";
+    });
+    document.querySelectorAll("[data-icon-exit]").forEach((el) => {
+      (el as HTMLElement).style.display = document.fullscreenElement ? "" : "none";
+    });
+  });
+
+  // ── Event bindings ──
+  playButtons.forEach((button) => button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    togglePlay();
+  }));
+  rotateButtons.forEach((button) => button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleRotate();
+  }));
+  fullscreenButtons.forEach((button) => button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleFullscreen();
+  }));
+
   seek?.addEventListener("input", () => {
     const duration = Number.isFinite(video.duration) ? video.duration : 0;
     if (!duration || !seek.value) return;
@@ -258,36 +332,94 @@ function setupCustomControls(video: HTMLVideoElement) {
   speed?.addEventListener("change", () => {
     video.playbackRate = Number(speed.value) || 1;
   });
-  video.addEventListener("click", togglePlay);
-  shell?.addEventListener("mousemove", () => showControls());
-  shell?.addEventListener("touchstart", () => showControls(), { passive: true });
-  shell?.addEventListener("focusin", () => showControls(true));
-  shell?.addEventListener("mouseleave", () => {
-    if (!video.paused) {
-      shell.dataset.controlsVisible = "false";
+
+  // ── Touch handling for mobile ──
+  // Single tap on video = toggle controls, double tap = seek ±10s
+  let tapTimeout: number | undefined;
+  let lastTapTime = 0;
+  let lastTapX = 0;
+
+  video.addEventListener("click", (e) => {
+    // On desktop, simple click = toggle play
+    if (!("ontouchstart" in window)) {
+      togglePlay();
+      return;
+    }
+
+    // On mobile, handle via the touchend logic below
+    e.preventDefault();
+  });
+
+  video.addEventListener("touchend", (e) => {
+    const now = Date.now();
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+
+    const timeDiff = now - lastTapTime;
+    const x = touch.clientX;
+
+    if (timeDiff < 300 && Math.abs(x - lastTapX) < 50) {
+      // Double tap detected
+      if (tapTimeout) window.clearTimeout(tapTimeout);
+      const rect = video.getBoundingClientRect();
+      const half = rect.left + rect.width / 2;
+      if (x < half) {
+        // Double tap left = seek back
+        if (Number.isFinite(video.duration)) {
+          video.currentTime = Math.max(0, video.currentTime - 10);
+        }
+      } else {
+        // Double tap right = seek forward
+        if (Number.isFinite(video.duration)) {
+          video.currentTime = Math.min(video.duration, video.currentTime + 10);
+        }
+      }
+      showControls();
+      lastTapTime = 0;
+    } else {
+      // Single tap – wait to see if it becomes a double
+      lastTapTime = now;
+      lastTapX = x;
+      if (tapTimeout) window.clearTimeout(tapTimeout);
+      tapTimeout = window.setTimeout(() => {
+        // Confirmed single tap: toggle controls visibility
+        if (controlsVisible && !video.paused) {
+          setControlsVisible(false);
+          if (hideTimer) window.clearTimeout(hideTimer);
+        } else {
+          showControls();
+        }
+      }, 300);
     }
   });
-  document.querySelector("[data-custom-controls]")?.addEventListener("pointerenter", () => showControls(true));
-  document.querySelector("[data-custom-controls]")?.addEventListener("pointerleave", () => showControls());
+
+  // Desktop: mouse movement shows controls
+  shell?.addEventListener("mousemove", () => showControls());
+  shell?.addEventListener("mouseleave", () => {
+    if (!video.paused) {
+      if (hideTimer) window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => setControlsVisible(false), 800);
+    }
+  });
+
+  // Hovering over the controls bar keeps them visible
+  controlsBar?.addEventListener("pointerenter", () => {
+    if (hideTimer) window.clearTimeout(hideTimer);
+  });
+  controlsBar?.addEventListener("pointerleave", () => {
+    if (!video.paused) scheduleHide();
+  });
+
+  // Prevent controls bar clicks/touches from propagating to video
+  controlsBar?.addEventListener("click", (e) => e.stopPropagation());
+  controlsBar?.addEventListener("touchend", (e) => e.stopPropagation());
+
   video.addEventListener("play", syncPlay);
   video.addEventListener("pause", syncPlay);
   video.addEventListener("ended", () => showControls(true));
   video.addEventListener("loadedmetadata", syncTime);
   video.addEventListener("timeupdate", syncTime);
-  document.addEventListener("fullscreenchange", () => {
-    if (document.fullscreenElement) {
-      lockLandscape();
-    } else {
-      unlockOrientation();
-    }
 
-    document.querySelectorAll("[data-icon-full]").forEach((el) => {
-      el.classList.toggle("hidden", !!document.fullscreenElement);
-    });
-    document.querySelectorAll("[data-icon-exit]").forEach((el) => {
-      el.classList.toggle("hidden", !document.fullscreenElement);
-    });
-  });
   syncPlay();
   syncTime();
 }
@@ -373,8 +505,6 @@ function setupAutoNext(video: HTMLVideoElement) {
   const syncToggle = () => {
     if (!toggle) return;
     toggle.classList.toggle("is-primary", enabled);
-    // Since we use an icon now, we don't need text content modification
-    // toggle.textContent = enabled ? "Auto Next On" : "Auto Next Off";
   };
 
   const clearCountdown = () => {

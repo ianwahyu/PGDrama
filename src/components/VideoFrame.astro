@@ -19,7 +19,7 @@ const subtitleTracks = subtitles.length > 0 ? subtitles : subtitleSrc ? [{ label
 ---
 
 <section class="soft-panel relative overflow-hidden">
-  <div class="group/player relative aspect-video bg-black text-white" data-player-shell data-controls-visible="true" tabindex="0">
+  <div class="group/player relative aspect-video bg-black text-white" data-player-shell tabindex="0">
     {
       src ? (
         <video
@@ -157,14 +157,4 @@ const subtitleTracks = subtitles.length > 0 ? subtitles : subtitleSrc ? [{ label
   import "../lib/player";
 </script>
 
-<style>
-  [data-player-shell].is-rotated {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 100vh;
-    height: 100vw;
-    transform: translate(-50%, -50%) rotate(90deg);
-    z-index: 9999;
-  }
-</style>
+

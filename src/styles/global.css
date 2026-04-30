@@ -98,6 +98,7 @@ img, video {
   display: block;
 }
 
+/* ── Player: fullscreen ── */
 [data-player-shell]:fullscreen {
   width: 100vw;
   height: 100vh;
@@ -110,26 +111,43 @@ img, video {
   width: 100%;
 }
 
+/* ── Player: controls visibility ── */
 [data-player-shell] .player-chrome,
 [data-player-shell] [data-player-action="play"] {
   opacity: 1;
   pointer-events: auto;
+  transition: opacity 0.3s ease;
 }
 
-[data-player-shell][data-controls-visible="false"] .player-chrome,
-[data-player-shell][data-controls-visible="false"][data-playing="true"] [data-player-action="play"] {
+[data-player-shell].controls-hidden .player-chrome,
+[data-player-shell].controls-hidden > [data-player-action="play"] {
   opacity: 0;
   pointer-events: none;
 }
 
-[data-player-shell][data-controls-visible="false"] {
+[data-player-shell].controls-hidden {
   cursor: none;
 }
 
-[data-player-shell]:focus-within .player-chrome,
-[data-player-shell]:hover .player-chrome {
-  opacity: 1;
-  pointer-events: auto;
+/* ── Player: CSS rotate fallback for mobile ── */
+[data-player-shell].is-rotated {
+  position: fixed !important;
+  inset: 0;
+  z-index: 99999;
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  background: #000;
+}
+
+[data-player-shell].is-rotated video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+body.body-player-rotated {
+  overflow: hidden;
 }
 
 .soft-panel {
